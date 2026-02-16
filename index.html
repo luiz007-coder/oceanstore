@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OceanStore - Login</title>
+  <link rel="icon" type="image/png" href="https://i.imgur.com/U9aXSQB.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --cyan-primary: #75afca;
+      --cyan-dark: #6095af;
+      --cyan-light: #7dd3fc;
+      --cyan-muted: #f0f9ff;
+      --white: #ffffff;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-500: #64748b;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1e293b;
+      --gray-900: #0f172a;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    body {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, var(--cyan-muted) 0%, var(--white) 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 440px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .login-card {
+      background: var(--white);
+      border-radius: 24px;
+      padding: 25px 34px;
+      border: 2px solid var(--gray-200);
+      backdrop-filter: blur(10px);
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo-icon {
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, var(--cyan-primary), var(--cyan-dark));
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .logo-icon svg {
+      width: 36px;
+      height: 36px;
+      color: var(--white);
+    }
+
+    .logo h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--gray-800);
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .logo p {
+      font-size: 14px;
+      color: var(--gray-500);
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 16px 18px;
+      font-size: 15px;
+      border: 2px solid var(--gray-200);
+      border-radius: 12px;
+      background: var(--white);
+      color: var(--gray-800);
+      transition: all 0.2s ease;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--cyan-primary);
+      box-shadow: 0 0 0 4px var(--cyan-muted);
+    }
+
+    input[type="text"]::placeholder {
+      color: var(--gray-400);
+    }
+
+    .btn {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      width: 100%;
+      padding: 16px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan-primary), var(--cyan-dark));
+      color: var(--white);
+      box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.4);
+    }
+
+    .btn-primary:disabled {
+      background: var(--gray-300);
+      transform: none;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .verification-step {
+      display: none;
+    }
+
+    .verification-step.active {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .code-display {
+      background: linear-gradient(135deg, var(--cyan-muted), var(--white));
+      border: 2px dashed var(--cyan-primary);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      margin: 24px 0;
+    }
+
+    .code-display .label {
+      font-size: 12px;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .code-display .code {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--cyan-primary);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      letter-spacing: 4px;
+    }
+
+    .instructions {
+      background: var(--gray-50);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      border: 1px solid var(--gray-200);
+    }
+
+    .instructions ol {
+      margin: 0;
+      padding-left: 20px;
+      font-size: 14px;
+      color: var(--gray-600);
+      line-height: 2;
+    }
+
+    .instructions li {
+      margin-bottom: 4px;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 16px;
+      font-size: 14px;
+      color: var(--cyan-primary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .back-link:hover {
+      color: var(--cyan-dark);
+      text-decoration: underline;
+    }
+
+    .error-message {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 14px;
+      color: var(--danger);
+      margin-bottom: 20px;
+      display: none;
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .info-box {
+      background: var(--cyan-muted);
+      border: 1px solid var(--cyan-light);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .info-box svg {
+      width: 24px;
+      height: 24px;
+      color: var(--cyan-primary);
+      flex-shrink: 0;
+    }
+
+    .info-box p {
+      font-size: 13px;
+      color: var(--gray-700);
+      line-height: 1.5;
+    }
+
+    .success-message {
+      background: #d1fae5;
+      border: 1px solid #a7f3d0;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      color: #065f46;
+    }
+
+    .success-message.show {
+      display: flex;
+      animation: slideIn 0.3s ease;
+    }
+
+    .success-message svg {
+      width: 24px;
+      height: 24px;
+      color: #059669;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 32px 24px;
+      }
+
+      .logo h1 {
+        font-size: 28px;
+      }
+
+      .code-display .code {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 3h18v18H3zM9 9h6v6H9z"/>
+            <path d="M3 9h6M3 15h6M15 9h6M15 15h6M9 3v6M15 3v6M9 15v6M15 15v6"/>
+          </svg>
+        </div>
+        <h1>OceanStore</h1>
+        <p>Mini Marketplace Digital</p>
+      </div>
+
+      <div class="error-message" id="error-message"></div>
+      <div class="success-message" id="success-message">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 6L9 17l-5-5"/>
+        </svg>
+        <span id="success-text">Login realizado com sucesso!</span>
+      </div>
+
+      <div id="step-1" class="verification-step active">
+        <div class="info-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 16v-4M12 8h.01"/>
+          </svg>
+          <p>Se você já tem uma conta, digite seu nick e faça login. Se for novo, você precisará verificar com código <strong>EFE-XXXXX</strong> na missão.</p>
+        </div>
+        <div class="form-group">
+          <label for="nick">Seu Nick do Habbo</label>
+          <input type="text" id="nick" placeholder="Digite seu nick" autocomplete="off">
+        </div>
+        <button class="btn btn-primary" id="btn-generate" onclick="handleLogin()">Continuar</button>
+      </div>
+
+      <div id="step-2" class="verification-step">
+        <div class="code-display">
+          <div class="label">Seu Código de Verificação</div>
+          <div class="code" id="verification-code">EFE-----</div>
+        </div>
+
+        <div class="instructions">
+          <ol>
+            <li>Entre no Habbo com o nick <strong id="display-nick"></strong></li>
+            <li>Copie o código <strong id="code-copy"></strong> e cole na sua missão</li>
+            <li>Clique em "Verificar" abaixo</li>
+          </ol>
+        </div>
+
+        <button class="btn btn-primary" id="btn-verify" onclick="verifyCode()">Verificar</button>
+        <a href="#" class="back-link" onclick="goBack()">Voltar</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/session.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    if (SessionManager.isAuthenticated()) {
+      window.location.href = 'overview.html';
+    }
+
+    function showError(message) {
+      const errorEl = document.getElementById('error-message');
+      errorEl.textContent = message;
+      errorEl.classList.add('show');
+      setTimeout(() => errorEl.classList.remove('show'), 5000);
+    }
+
+    function showSuccess(message) {
+      const successEl = document.getElementById('success-message');
+      const successText = document.getElementById('success-text');
+      successText.textContent = message;
+      successEl.classList.add('show');
+      setTimeout(() => successEl.classList.remove('show'), 3000);
+    }
+
+    async function handleLogin() {
+      const nick = document.getElementById('nick').value.trim();
+      const btn = document.getElementById('btn-generate');
+
+      if (!nick) {
+        showError('Digite seu nick do Habbo');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Verificando...';
+
+      try {
+        const result = await Auth.login(nick);
+        
+        if (result.skipCode) {
+          showSuccess(`Bem-vindo de volta, ${nick}!`);
+          setTimeout(() => {
+            window.location.href = 'overview.html';
+          }, 1500);
+        } else if (result.requiresVerification) {
+          document.getElementById('verification-code').textContent = result.code;
+          document.getElementById('display-nick').textContent = nick;
+          document.getElementById('code-copy').textContent = result.code;
+          
+          document.getElementById('step-1').classList.remove('active');
+          document.getElementById('step-2').classList.add('active');
+        }
+      } catch (error) {
+        showError('Erro ao processar login');
+        console.error(error);
+      }
+      
+      btn.disabled = false;
+      btn.textContent = 'Continuar';
+    }
+
+    async function verifyCode() {
+      const btn = document.getElementById('btn-verify');
+      btn.disabled = true;
+      btn.textContent = 'Verificando...';
+
+      const result = await Auth.completeVerification();
+
+      if (result.success) {
+        showSuccess('Verificação concluída! Redirecionando...');
+        setTimeout(() => {
+          window.location.href = 'overview.html';
+        }, 1500);
+      } else {
+        showError(result.error || 'Verificação falhou');
+        btn.disabled = false;
+        btn.textContent = 'Verificar';
+      }
+    }
+
+    function goBack() {
+      document.getElementById('step-2').classList.remove('active');
+      document.getElementById('step-1').classList.add('active');
+      SessionManager.remove('verification_code');
+      SessionManager.remove('pending_nick');
+    }
+
+    document.getElementById('nick').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleLogin();
+    });
+  </script>
+</body>
+</html>
