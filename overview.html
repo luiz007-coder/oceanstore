@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OceanStore - Dashboard</title>
   <link rel="icon" type="image/png" href="https://i.imgur.com/U9aXSQB.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <style>
     * {
       margin: 0;
@@ -34,10 +35,13 @@
       --success: #10b981;
       --warning: #f59e0b;
       --danger: #ef4444;
+      --gold: #FFD700;
+      --silver: #C0C0C0;
+      --bronze: #CD7F32;
     }
 
     body {
-      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Poppins', sans-serif;
       background: var(--gray-50);
       min-height: 100vh;
       color: var(--gray-800);
@@ -45,46 +49,53 @@
 
     #profile-header {
       position: fixed;
-      top: 15px;
-      right: 15px;
+      top: 20px;
+      right: 20px;
       z-index: 1000;
     }
 
     .profile-trigger {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 9px 14px;
-      background: rgba(96, 149, 175, 0.13);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
+      gap: 8px;
+      padding: 6px 12px 6px 6px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border: 2px solid var(--gray-200);
-      border-radius: 12px;
+      border-radius: 15px;
       cursor: pointer;
       transition: all 0.2s ease;
     }
 
-    .profile-nick {
-      font-weight: 600;
-      font-size: 14px;
-      color: var(--gray-800);
+    .profile-avatar {
+      width: 34px;
+      height: auto;
     }
 
-    .profile-points {
-      display: none;
+    .profile-nick {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--gray-800);
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .profile-trigger svg {
+      color: var(--gray-500);
     }
 
     .profile-dropdown {
       position: absolute;
       top: calc(100% + 8px);
       right: 0;
-      width: 240px;
-      background: rgba(96, 149, 175, 0.13);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
+      width: 260px;
+      background: white;
       border: 2px solid var(--gray-200);
-      border-radius: 13px;
-      padding: 11px 0;
+      border-radius: 16px;
+      padding: 8px 0;
       display: none;
     }
 
@@ -93,24 +104,63 @@
       animation: fadeIn 0.2s ease;
     }
 
-    .dropdown-item {
-      padding: 10px 16px;
+    .dropdown-user {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
     }
 
-    .dropdown-item .label {
-      font-size: 12px;
-      color: var(--gray-500);
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
+    .dropdown-avatar {
+      width: 40px;
+      height: 42px;
+      border-radius: 9px;
+      background-color: var(--cyan-primary);
+      border: 2px solid var(--cyan-primary);
     }
 
-    .dropdown-item .value {
-      font-size: 14px;
+    .dropdown-user-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dropdown-user-nick {
       font-weight: 600;
+      font-size: 15px;
       color: var(--gray-800);
+      margin-bottom: 2px;
+    }
+
+    .dropdown-user-points {
+      font-size: 12px;
+      color: var(--cyan-primary);
+      font-weight: 500;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      font-size: 14px;
+      color: var(--gray-700);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      width: 100%;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .dropdown-item:hover {
+      background: var(--gray-50);
+      color: var(--cyan-primary);
+    }
+
+    .dropdown-item svg {
+      color: currentColor;
+      opacity: 0.8;
     }
 
     .dropdown-divider {
@@ -119,36 +169,108 @@
       margin: 8px 0;
     }
 
-    .dropdown-link {
-      display: block;
-      padding: 10px 16px;
-      font-size: 14px;
-      color: var(--cyan-primary);
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .dropdown-link:hover {
-      background: var(--gray-50);
-    }
-
     .logout-btn {
-      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      width: calc(100% - 32px);
-      margin: 8px 16px 0;
-      padding: 10px;
-      background: var(--danger);
-      color: var(--white);
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s ease;
+      color: var(--danger);
     }
 
     .logout-btn:hover {
-      background: #dc2626;
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Toast Notifications */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      min-width: 300px;
+      max-width: 400px;
+      background: white;
+      border: 2px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+      animation: slideUp 0.3s ease;
+      z-index: 9999;
+    }
+
+    .toast.toast-success {
+      border-color: var(--success);
+      background: #d1fae5;
+    }
+
+    .toast.toast-error {
+      border-color: var(--danger);
+      background: #fee2e2;
+    }
+
+    .toast.toast-warning {
+      border-color: var(--warning);
+      background: #fef3c7;
+    }
+
+    .toast svg {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .toast.toast-success svg {
+      color: #059669;
+    }
+
+    .toast.toast-error svg {
+      color: #dc2626;
+    }
+
+    .toast.toast-warning svg {
+      color: #d97706;
+    }
+
+    .toast span {
+      font-size: 14px;
+      color: var(--gray-800);
+      flex: 1;
+    }
+
+    .toast-hide {
+      animation: slideDown 0.3s ease forwards;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(20px);
+      }
     }
 
     .sidebar {
@@ -265,7 +387,7 @@
       background: linear-gradient(135deg, var(--cyan-muted), var(--white));
       border: 2px solid var(--cyan-light);
       border-radius: 16px;
-      padding: 24px 32px;
+      padding: 14px 21px;
       margin-bottom: 32px;
       display: flex;
       align-items: center;
@@ -386,8 +508,8 @@
     .ranking-item {
       display: flex;
       align-items: center;
-      gap: 16px;
-      padding: 16px 24px;
+      gap: 12px;
+      padding: 12px 24px;
       border-bottom: 1px solid var(--gray-100);
       transition: background 0.2s ease;
     }
@@ -396,30 +518,35 @@
       background: var(--gray-50);
     }
 
-    .ranking-item:last-child {
-      border-bottom: none;
+    .ranking-avatar {
+      width: 37px;
+      height: auto;
     }
 
     .ranking-position {
-      width: 36px;
-      height: 36px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 10px;
-      font-size: 14px;
+      width: 30px;
       font-weight: 700;
-      background: var(--gray-100);
-      color: var(--gray-600);
+      font-size: 14px;
+      color: var(--gray-500);
     }
 
-    .ranking-position.top {
-      background: linear-gradient(135deg, var(--cyan-primary), var(--cyan-dark));
-      color: var(--white);
+    .position-gold {
+      color: var(--gold);
+    }
+
+    .position-silver {
+      color: var(--silver);
+    }
+
+    .position-bronze {
+      color: var(--bronze);
     }
 
     .ranking-info {
       flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .ranking-nick {
@@ -428,9 +555,16 @@
       color: var(--gray-800);
     }
 
+    .crown-icon {
+      color: var(--gold);
+      width: 16px;
+      height: 16px;
+    }
+
     .ranking-points {
       font-size: 13px;
       color: var(--gray-500);
+      margin-left: auto;
     }
 
     .redemption-list {
@@ -456,16 +590,8 @@
     }
 
     .redemption-avatar {
-      width: 40px;
-      height: 40px;
-      background: var(--cyan-muted);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--cyan-primary);
+      width: 37px;
+      height: auto;
     }
 
     .redemption-details {
@@ -542,6 +668,11 @@
       font-size: 14px;
     }
 
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     @media (max-width: 1200px) {
       .stats-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -593,7 +724,7 @@
     <div class="sidebar-logo">
       <a href="overview.html">
         <div class="sidebar-logo-icon">
-          <img src="https://i.imgur.com/U9aXSQB.png" alt="OceanStore" style="width: 22px; height: 22px;">
+          <img src="https://i.imgur.com/U9aXSQB.png" alt="OceanStore">
         </div>
         <span class="sidebar-logo-text">OceanStore</span>
       </a>
@@ -602,28 +733,35 @@
       <ul class="nav-menu">
         <li class="nav-item">
           <a href="overview.html" class="nav-link active">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-              <path d="M9 22V12h6v10"/>
+            <svg viewBox="0 0 256 256" fill="currentColor">
+              <path d="M218.83,103.77l-80-75.48a1,1,0,0,1-.11-.11,17,17,0,0,0-23.44,0l-.11.11L37.17,103.77A16,16,0,0,0,32,115.55V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V160h32v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V115.55A16,16,0,0,0,218.83,103.77Z"></path>
             </svg>
             Dashboard
           </a>
         </li>
         <li class="nav-item">
           <a href="market.html" class="nav-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
-              <path d="M3 6h18M16 10a4 4 0 01-8 0"/>
+            <svg viewBox="0 0 256 256" fill="currentColor">
+              <path d="M232,96a8,8,0,0,0-8-8H32a8,8,0,0,0-8,8V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16Zm-16,96H40V104H216Zm-8-40a12,12,0,1,1-12-12A12,12,0,0,1,208,152ZM64,48H192a8,8,0,0,1,0,16H64A8,8,0,0,1,64,48Z"></path>
             </svg>
             Loja
           </a>
         </li>
         <li class="nav-item">
           <a href="redemption.html" class="nav-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 8v13M3 8h18M7 8V5a2 2 0 012-2h6a2 2 0 012 2v3"/>
+            <svg viewBox="0 0 256 256" fill="currentColor">
+              <path d="M216,72H178.83L200.3,35.5a8,8,0,0,0-13.7-8.27L164.41,64H91.59L69.4,27.23a8,8,0,1,0-13.7,8.27L77.17,72H40A16,16,0,0,0,24,88V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V88A16,16,0,0,0,216,72Z"></path>
             </svg>
             Resgates
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <svg viewBox="0 0 256 256" fill="currentColor">
+              <path d="M168,76a12,12,0,1,1-12-12A12,12,0,0,1,168,76Zm-12,52a12,12,0,1,0,12,12A12,12,0,0,0,156,128Zm0,64a12,12,0,1,0,12,12A12,12,0,0,0,156,192ZM128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Z"></path>
+            </svg>
+            Fortune Fish
+            <span style="margin-left: auto; font-size: 10px; color: var(--gray-400);">Em breve</span>
           </a>
         </li>
       </ul>
@@ -648,9 +786,8 @@
     </div>
 
     <div class="queue-message" id="queue-message" style="display: none;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 6v6l4 2"/>
+      <svg viewBox="0 0 256 256" fill="currentColor">
+        <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H136v48a8,8,0,0,1-16,0V136H72a8,8,0,0,1,0-16h48V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"></path>
       </svg>
       <p id="queue-text">Sua posição é: <strong>#0</strong>. Aguarde sua vez!</p>
     </div>
@@ -709,6 +846,17 @@
       
       ProfileHeader.init();
 
+      function getAvatarUrl(nick) {
+        return `https://www.habbo.com.br/habbo-imaging/avatarimage?&user=${encodeURIComponent(nick)}&action=std&direction=2&head_direction=2&img_format=png&gesture=std&headonly=1&size=l`;
+      }
+
+      function getPositionClass(index) {
+        if (index === 0) return 'position-gold';
+        if (index === 1) return 'position-silver';
+        if (index === 2) return 'position-bronze';
+        return '';
+      }
+
       async function loadDashboard() {
         try {
           const user = SessionManager.getUser();
@@ -731,22 +879,30 @@
           const allRewards = await DB.rewards.getAll();
           document.getElementById('total-rewards').textContent = allRewards.length;
 
-          const ranking = await DB.rankings.getTop(5);
+          const allUsers = await DB.users.getAll();
+          const nonBannedUsers = allUsers.filter(u => !u.banned);
+          const ranking = nonBannedUsers.slice(0, 5);
+          
           const rankingList = document.getElementById('ranking-list');
           const rankingLoading = document.getElementById('ranking-loading');
           
           if (ranking.length > 0) {
             rankingLoading.style.display = 'none';
             rankingList.style.display = 'block';
-            rankingList.innerHTML = ranking.map((item, index) => `
-              <li class="ranking-item">
-                <div class="ranking-position ${index < 3 ? 'top' : ''}">${index + 1}</div>
-                <div class="ranking-info">
-                  <div class="ranking-nick">${item.nick}</div>
-                  <div class="ranking-points">${item.points} pontos</div>
-                </div>
-              </li>
-            `).join('');
+            rankingList.innerHTML = ranking.map((item, index) => {
+              const isAdmin = item.is_admin;
+              return `
+                <li class="ranking-item">
+                  <span class="ranking-position ${getPositionClass(index)}">${index + 1}º</span>
+                  <img src="${getAvatarUrl(item.nick)}" alt="${item.nick}" class="ranking-avatar">
+                  <div class="ranking-info">
+                    <span class="ranking-nick">${item.nick}</span>
+                    ${isAdmin ? '<i class="ph ph-crown"></i>' : ''}
+                  </div>
+                  <span class="ranking-points">${item.points} pts</span>
+                </li>
+              `;
+            }).join('');
           } else {
             rankingLoading.textContent = 'Nenhum usuário encontrado';
           }
@@ -758,18 +914,21 @@
           if (allRedemptions.length > 0) {
             redemptionsLoading.style.display = 'none';
             redemptionList.style.display = 'block';
-            redemptionList.innerHTML = allRedemptions.slice(0, 5).map(item => `
-              <li class="redemption-item">
-                <div class="redemption-info">
-                  <div class="redemption-avatar">${item.users?.nick?.charAt(0) || '?'}</div>
-                  <div class="redemption-details">
-                    <div class="redemption-nick">${item.users?.nick || 'Desconhecido'}</div>
-                    <div class="redemption-reward">${item.reward_name || 'Recompensa'}</div>
+            redemptionList.innerHTML = allRedemptions.slice(0, 5).map(item => {
+              const userNick = item.users?.nick || 'Desconhecido';
+              return `
+                <li class="redemption-item">
+                  <div class="redemption-info">
+                    <img src="${getAvatarUrl(userNick)}" alt="${userNick}" class="redemption-avatar">
+                    <div class="redemption-details">
+                      <div class="redemption-nick">${userNick}</div>
+                      <div class="redemption-reward">${item.reward_name || 'Recompensa'}</div>
+                    </div>
                   </div>
-                </div>
-                <span class="status-badge status-${item.status}">${item.status}</span>
-              </li>
-            `).join('');
+                  <span class="status-badge status-${item.status}">${item.status}</span>
+                </li>
+              `;
+            }).join('');
           } else {
             redemptionsLoading.textContent = 'Nenhum resgate encontrado';
           }
@@ -795,7 +954,8 @@
           const countdownLabel = document.getElementById('countdown-label');
           
           if (status.is_open) {
-            storeStatusEl.textContent = '🟢 Loja Aberta';
+            const remainingDays = await DB.store.getRemainingDays();
+            storeStatusEl.textContent = `🟢 Loja aberta (fecha em ${remainingDays} dias)`;
             storeStatusEl.style.color = '#10b981';
             queueMessage.style.display = 'none';
             countdownLabel.textContent = 'Status';
@@ -806,7 +966,7 @@
               countdownInterval = null;
             }
           } else {
-            storeStatusEl.textContent = '🔴 Loja Fechada';
+            storeStatusEl.textContent = '🔴 Loja fechada';
             storeStatusEl.style.color = '#ef4444';
             
             const pendingCount = await DB.redemptions.getPendingCount();
@@ -814,16 +974,19 @@
             
             if (pendingCount > 0 && user) {
               const userPosition = await DB.rankings.getUserPosition(user.id);
-              queueText.innerHTML = `Sua posição é: <strong>#${userPosition}</strong>. Aguarde sua vez! (${pendingCount} na fila)`;
+              queueText.innerHTML = `Sua posição é: <strong>#${userPosition}</strong>. Aguarde a próxima abertura! (${pendingCount} resgates pendentes)`;
               queueMessage.style.display = 'flex';
             }
 
             if (status.next_open_date) {
               targetDate = new Date(status.next_open_date);
-              countdownLabel.textContent = 'Próxima Abertura';
+              countdownLabel.textContent = 'Próxima Abertura (dia 5)';
               startRealTimeCountdown();
             } else {
-              countdownEl.textContent = 'Não agendada';
+              const nextDate = await DB.store.calculateNextOpenDate();
+              targetDate = new Date(nextDate);
+              countdownLabel.textContent = 'Próxima Abertura (dia 5)';
+              startRealTimeCountdown();
             }
           }
         } catch (error) {
@@ -837,6 +1000,11 @@
         }
 
         function updateTimer() {
+          if (!targetDate) {
+            document.getElementById('countdown').textContent = '--:--:--';
+            return;
+          }
+          
           const now = new Date().getTime();
           const target = targetDate.getTime();
           const diff = target - now;
@@ -863,7 +1031,6 @@
         }
 
         updateTimer();
-
         countdownInterval = setInterval(updateTimer, 1000);
       }
 
