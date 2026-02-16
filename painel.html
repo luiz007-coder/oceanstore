@@ -844,12 +844,6 @@
       .main-content {
         margin-left: 0;
       }
-      #profile-header {
-        position: relative;
-        top: auto;
-        right: auto;
-        padding: 16px;
-      }
       .admin-tabs {
         flex-wrap: wrap;
       }
@@ -861,10 +855,392 @@
         grid-template-columns: 1fr;
       }
     }
+
+    .app-header {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: #efefef14;
+      backdrop-filter: blur(10px);
+      border-bottom: 2px solid var(--gray-200);
+      z-index: 998;
+      padding: 0 20px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .app-header .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-header .header-logo img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
+
+    .app-header .header-logo span {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-800);
+    }
+
+    .header-menu-toggle {
+      background: none;
+      color: black;
+      border: none;
+      width: 45px;
+      height: 45px;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .sidebar-overlay.active {
+      display: block;
+      opacity: 1;
+    }
+
+    .sidebar-user-mobile {
+      display: none;
+      padding: 20px 16px;
+      border-bottom: 2px solid var(--gray-200);
+      margin-bottom: 16px;
+      background: var(--gray-50);
+    }
+
+    .sidebar-user-mobile .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sidebar-user-mobile .user-avatar {
+      width: 45px;
+      height: 47px;
+      border-radius: 10px;
+      border: 2px solid var(--cyan-primary);
+    }
+
+    .sidebar-user-mobile .user-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-user-mobile .user-nick {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--gray-800);
+      margin-bottom: 2px;
+    }
+
+    .sidebar-user-mobile .user-points {
+      font-size: 13px;
+      color: var(--cyan-primary);
+      font-weight: 600;
+    }
+
+    .sidebar-logout-mobile {
+      display: none;
+      margin-top: auto;
+      padding: 16px;
+      border-top: 2px solid var(--gray-200);
+    }
+
+    .sidebar-logout-mobile button {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 14px 16px;
+      background: #fee2e2;
+      color: #dc2626;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .sidebar-logout-mobile button:hover {
+      background: #fecaca;
+    }
+
+    .sidebar-logout-mobile button i {
+      font-size: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .app-header {
+        display: flex;
+      }
+
+      .sidebar {
+        position: fixed;
+        left: -280px;
+        top: 0;
+        width: 260px;
+        height: 100vh;
+        z-index: 1000;
+        transition: left 0.3s ease;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        padding-top: 0;
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .sidebar-logo {
+        display: none;
+      }
+
+      .sidebar-user-mobile {
+        display: block;
+        margin-top: 0;
+      }
+
+      .main-content {
+        margin-left: 0;
+        padding: 90px 16px 16px 16px;
+      }
+
+      .nav-menu {
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .main-content {
+        margin-left: 0;
+        padding: 70px 16px 16px 16px;
+      }
+
+      #profile-header {
+        display: none;
+      }
+
+      .profile-trigger {
+        padding: 4px 8px 4px 4px;
+      }
+
+      .profile-avatar {
+        width: 30px;
+      }
+
+      .profile-nick {
+        font-size: 12px;
+        max-width: 80px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .stat-card {
+        padding: 16px;
+      }
+
+      .stat-card .value {
+        font-size: 28px;
+      }
+
+      .admin-tabs {
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .tab-btn {
+        flex: 1 1 auto;
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+
+      .data-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      .data-table th,
+      .data-table td {
+        padding: 12px 16px;
+        font-size: 13px;
+      }
+
+      .panel-header {
+        padding: 16px;
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+      }
+
+      .panel-header .btn {
+        width: 100%;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+        padding: 16px;
+      }
+
+      .form-group.full-width {
+        grid-column: span 1;
+      }
+
+      .modal-content {
+        margin: 16px;
+        padding: 24px;
+        max-width: none;
+      }
+
+      .two-columns {
+        grid-template-columns: 1fr;
+      }
+
+      .points-bar {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+        padding: 16px;
+      }
+
+      .points-info {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .points-progress {
+        text-align: center;
+        min-width: 100%;
+      }
+
+      .queue-info, .your-turn-info {
+        flex-direction: column;
+        text-align: center;
+        padding: 16px;
+      }
+
+      .timer {
+        margin-left: 0;
+      }
+
+      .rewards-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .reward-card {
+        padding: 20px;
+      }
+
+      .current-turn-box {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+      }
+
+      .turn-info {
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .action-btns {
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+
+      .page-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .header-actions {
+        width: 100%;
+      }
+
+      .header-actions .btn {
+        width: 100%;
+      }
+
+      .next-opening {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+        padding: 16px;
+      }
+
+      .next-opening-info .date {
+        font-size: 22px;
+      }
+
+      .next-opening-countdown .time {
+        font-size: 24px;
+      }
+
+      .ranking-item {
+        padding: 10px 16px;
+      }
+
+      .ranking-avatar {
+        width: 30px;
+      }
+
+      .ranking-nick {
+        font-size: 13px;
+      }
+
+      .redemption-item {
+        padding: 12px 16px;
+      }
+
+      .redemption-avatar {
+        width: 30px;
+      }
+    }
   </style>
 </head>
 <body>
-  <aside class="sidebar">
+  <header class="app-header">
+    <div class="header-logo">
+      <img src="https://i.imgur.com/U9aXSQB.png" alt="OceanStore">
+      <span>OceanStore</span>
+    </div>
+    <button class="header-menu-toggle" id="menuToggle">
+      <i class="ph ph-list"></i>
+    </button>
+  </header>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar">
+    <div class="sidebar-user-mobile"></div>
     <div class="sidebar-logo">
       <a href="overview.html">
         <div class="sidebar-logo-icon">
@@ -877,46 +1253,42 @@
       <ul class="nav-menu">
         <li class="nav-item">
           <a href="overview.html" class="nav-link">
-            <svg viewBox="0 0 256 256" fill="currentColor">
-              <path d="M218.83,103.77l-80-75.48a1,1,0,0,1-.11-.11,17,17,0,0,0-23.44,0l-.11.11L37.17,103.77A16,16,0,0,0,32,115.55V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V160h32v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V115.55A16,16,0,0,0,218.83,103.77Z"></path>
-            </svg>
+            <i class="ph ph-house"></i>
             Dashboard
           </a>
         </li>
         <li class="nav-item">
           <a href="market.html" class="nav-link">
-            <svg viewBox="0 0 256 256" fill="currentColor">
-              <path d="M232,96a8,8,0,0,0-8-8H32a8,8,0,0,0-8,8V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16Zm-16,96H40V104H216Zm-8-40a12,12,0,1,1-12-12A12,12,0,0,1,208,152ZM64,48H192a8,8,0,0,1,0,16H64A8,8,0,0,1,64,48Z"></path>
-            </svg>
+            <i class="ph ph-storefront"></i>
             Loja
           </a>
         </li>
         <li class="nav-item">
           <a href="redemption.html" class="nav-link">
-            <svg viewBox="0 0 256 256" fill="currentColor">
-              <path d="M216,72H178.83L200.3,35.5a8,8,0,0,0-13.7-8.27L164.41,64H91.59L69.4,27.23a8,8,0,1,0-13.7,8.27L77.17,72H40A16,16,0,0,0,24,88V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V88A16,16,0,0,0,216,72Z"></path>
-            </svg>
+            <i class="ph ph-ticket"></i>
             Resgates
+          </a>
+        </li>
+        <li class="nav-item" id="admin-nav-item" style="display: block;">
+          <a href="painel.html" class="nav-link active">
+            <i class="ph ph-shield"></i>
+            Admin
           </a>
         </li>
         <li class="nav-item">
           <a href="#" class="nav-link">
-            <svg viewBox="0 0 256 256" fill="currentColor">
-              <path d="M168,76a12,12,0,1,1-12-12A12,12,0,0,1,168,76Zm-12,52a12,12,0,1,0,12,12A12,12,0,0,0,156,128Zm0,64a12,12,0,1,0,12,12A12,12,0,0,0,156,192ZM128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Z"></path>
-            </svg>
+            <i class="ph ph-fish"></i>
             Fortune Fish
             <span style="margin-left: auto; font-size: 10px; color: var(--gray-400);">Em breve</span>
           </a>
         </li>
-        <li class="nav-item">
-          <a href="painel.html" class="nav-link active">
-            <svg viewBox="0 0 256 256" fill="currentColor">
-              <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm48-88a8,8,0,0,1-8,8H136v32a8,8,0,0,1-16,0V136H88a8,8,0,0,1,0-16h32V88a8,8,0,0,1,16,0v32h32A8,8,0,0,1,176,128Z"></path>
-            </svg>
-            Admin
-          </a>
-        </li>
       </ul>
+      <div class="sidebar-logout-mobile">
+        <button onclick="Auth.logout()">
+          <i class="ph ph-sign-out"></i>
+          Sair
+        </button>
+      </div>
     </nav>
   </aside>
 
@@ -925,14 +1297,6 @@
       <div>
         <h1>Painel Administrativo</h1>
         <p>Gerencie missões, recompensas, usuários e fila de resgate.</p>
-      </div>
-      <div class="header-actions">
-        <button class="btn btn-primary" onclick="openAssignMissionModal()">
-          <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor">
-            <path d="M216,64H176a48,48,0,0,0-96,0H40A16,16,0,0,0,24,80V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V80A16,16,0,0,0,216,64ZM128,32a32,32,0,0,1,32,32H96A32,32,0,0,1,128,32Z"></path>
-          </svg>
-          Atribuir missão
-        </button>
       </div>
     </div>
 
@@ -1300,8 +1664,8 @@
           const users = await DB.users.getAll();
           document.getElementById('total-users').textContent = users.length;
           
-          const pending = await DB.redemptions.getPending();
-          document.getElementById('pending-count').textContent = pending.length;
+          const pendingMissions = await DB.missions.getPendingWithDetails();
+          document.getElementById('pending-count').textContent = pendingMissions.length;
           
           const totalPoints = users.reduce((sum, u) => sum + (u.points || 0), 0);
           document.getElementById('total-points').textContent = totalPoints.toLocaleString();
@@ -1893,55 +2257,6 @@
         });
       };
 
-      window.openAssignMissionModal = async function() {
-        try {
-          const users = await DB.users.getAll();
-          const missions = await DB.missions.getAll();
-          const userSelect = document.getElementById('assign-user');
-          const missionSelect = document.getElementById('assign-mission');
-
-          userSelect.innerHTML = '<option value="">Selecione um usuário</option>' + 
-            users.filter(u => !u.banned).map(u => `<option value="${u.id}">${u.nick} (${u.points} pts)</option>`).join('');
-          missionSelect.innerHTML = '<option value="">Selecione uma missão</option>' + 
-            missions.map(m => `<option value="${m.id}" data-points="${m.points}">${m.name} - ${m.points} pts</option>`).join('');
-
-          document.getElementById('assign-mission-modal').classList.add('active');
-        } catch (error) {
-          console.error('Erro ao carregar dados:', error);
-          Toast.show('Erro ao carregar dados', 'error');
-        }
-      };
-
-      window.closeAssignMissionModal = function() {
-        document.getElementById('assign-mission-modal').classList.remove('active');
-      };
-
-      window.assignMission = async function() {
-        const userId = document.getElementById('assign-user').value;
-        const missionSelect = document.getElementById('assign-mission');
-        const missionId = missionSelect.value;
-        const missionPoints = missionSelect.options[missionSelect.selectedIndex]?.dataset.points;
-
-        if (!userId || !missionId) {
-          Toast.show('Selecione usuário e missão', 'error');
-          return;
-        }
-
-        try {
-          const user = (await DB.users.getAll()).find(u => u.id === userId);
-          const newPoints = user.points + parseInt(missionPoints);
-          await DB.users.update(userId, { points: newPoints });
-          
-          Toast.show(`Missão atribuída! ${missionPoints} pontos adicionados.`, 'success');
-          closeAssignMissionModal();
-          loadStats();
-          loadUsers();
-        } catch (error) {
-          console.error('Erro ao atribuir missão:', error);
-          Toast.show('Erro ao atribuir missão', 'error');
-        }
-      };
-
       window.loadStoreSettings = async function() {
         try {
           const status = await DB.store.getStatus();
@@ -2002,6 +2317,38 @@
         await DB.store.checkAndOpenNext();
       }, 30000);
     })();
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const menuToggle = document.getElementById('menuToggle');
+      const sidebar = document.querySelector('.sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      
+      if (menuToggle && sidebar && overlay) {
+        menuToggle.addEventListener('click', function() {
+          sidebar.classList.toggle('active');
+          overlay.classList.toggle('active');
+          const icon = menuToggle.querySelector('i');
+          if (sidebar.classList.contains('active')) {
+            icon.className = 'ph ph-x';
+          } else {
+            icon.className = 'ph ph-list';
+          }
+        });
+        
+        overlay.addEventListener('click', function() {
+          sidebar.classList.remove('active');
+          overlay.classList.remove('active');
+          const icon = menuToggle.querySelector('i');
+          icon.className = 'ph ph-list';
+        });
+      }
+
+      const user = SessionManager.getUser();
+      const adminNavItem = document.getElementById('admin-nav-item');
+      if (adminNavItem && user && user.isAdmin) {
+        adminNavItem.style.display = 'block';
+      }
+    });
   </script>
 </body>
 </html>

@@ -700,13 +700,6 @@
         grid-template-columns: 1fr;
       }
 
-      #profile-header {
-        position: relative;
-        top: auto;
-        right: auto;
-        padding: 16px;
-      }
-
       .next-opening {
         flex-direction: column;
         text-align: center;
@@ -717,10 +710,500 @@
         text-align: center;
       }
     }
+
+    .app-header {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: #efefef14;
+      backdrop-filter: blur(10px);
+      border-bottom: 2px solid var(--gray-200);
+      z-index: 998;
+      padding: 0 20px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .app-header .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-header .header-logo img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
+
+    .app-header .header-logo span {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-800);
+    }
+
+    .header-menu-toggle {
+      background: none;
+      color: black;
+      border: none;
+      width: 45px;
+      height: 45px;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .sidebar-overlay.active {
+      display: block;
+      opacity: 1;
+    }
+
+    .sidebar-user-mobile {
+      display: none;
+      padding: 20px 16px;
+      border-bottom: 2px solid var(--gray-200);
+      margin-bottom: 16px;
+      background: var(--gray-50);
+    }
+
+    .sidebar-user-mobile .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sidebar-user-mobile .user-avatar {
+      width: 45px;
+      height: 47px;
+      border-radius: 10px;
+      border: 2px solid var(--cyan-primary);
+    }
+
+    .sidebar-user-mobile .user-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-user-mobile .user-nick {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--gray-800);
+      margin-bottom: 2px;
+    }
+
+    .sidebar-user-mobile .user-points {
+      font-size: 13px;
+      color: var(--cyan-primary);
+      font-weight: 600;
+    }
+
+    .sidebar-logout-mobile {
+      display: none;
+      margin-top: auto;
+      padding: 16px;
+      border-top: 2px solid var(--gray-200);
+    }
+
+    .sidebar-logout-mobile button {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 14px 16px;
+      background: #fee2e2;
+      color: #dc2626;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .sidebar-logout-mobile button:hover {
+      background: #fecaca;
+    }
+
+    .sidebar-logout-mobile button i {
+      font-size: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .app-header {
+        display: flex;
+      }
+
+      .sidebar {
+        position: fixed;
+        left: -280px;
+        top: 0;
+        width: 260px;
+        height: 100vh;
+        z-index: 1000;
+        transition: left 0.3s ease;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        padding-top: 0;
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .sidebar-logo {
+        display: none;
+      }
+
+      .sidebar-user-mobile {
+        display: block;
+        margin-top: 0;
+      }
+
+      .main-content {
+        margin-left: 0;
+        padding: 90px 16px 16px 16px;
+      }
+
+      .nav-menu {
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .main-content {
+        margin-left: 0;
+        padding: 70px 16px 16px 16px;
+      }
+
+      #profile-header {
+        display: none;
+      }
+
+      .profile-trigger {
+        padding: 4px 8px 4px 4px;
+      }
+
+      .profile-avatar {
+        width: 30px;
+      }
+
+      .profile-nick {
+        font-size: 12px;
+        max-width: 80px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .stat-card {
+        padding: 16px;
+      }
+
+      .stat-card .value {
+        font-size: 28px;
+      }
+
+      .admin-tabs {
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .tab-btn {
+        flex: 1 1 auto;
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+
+      .data-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      .data-table th,
+      .data-table td {
+        padding: 12px 16px;
+        font-size: 13px;
+      }
+
+      .panel-header {
+        padding: 16px;
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+      }
+
+      .panel-header .btn {
+        width: 100%;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+        padding: 16px;
+      }
+
+      .form-group.full-width {
+        grid-column: span 1;
+      }
+
+      .modal-content {
+        margin: 16px;
+        padding: 24px;
+        max-width: none;
+      }
+
+      .two-columns {
+        grid-template-columns: 1fr;
+      }
+
+      .points-bar {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+        padding: 16px;
+      }
+
+      .points-info {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .points-progress {
+        text-align: center;
+        min-width: 100%;
+      }
+
+      .queue-info, .your-turn-info {
+        flex-direction: column;
+        text-align: center;
+        padding: 16px;
+      }
+
+      .timer {
+        margin-left: 0;
+      }
+
+      .rewards-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .reward-card {
+        padding: 20px;
+      }
+
+      .current-turn-box {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+      }
+
+      .turn-info {
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .action-btns {
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+
+      .page-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .header-actions {
+        width: 100%;
+      }
+
+      .header-actions .btn {
+        width: 100%;
+      }
+
+      .next-opening {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+        padding: 16px;
+      }
+
+      .next-opening-info .date {
+        font-size: 22px;
+      }
+
+      .next-opening-countdown .time {
+        font-size: 24px;
+      }
+
+      .ranking-item {
+        padding: 10px 16px;
+      }
+
+      .ranking-avatar {
+        width: 30px;
+      }
+
+      .ranking-nick {
+        font-size: 13px;
+      }
+
+      .redemption-item {
+        padding: 12px 16px;
+      }
+
+      .redemption-avatar {
+        width: 30px;
+      }
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content {
+      background: var(--white);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 600px;
+      padding: 12px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      border: 2px solid var(--gray-200);
+      position: relative;
+    }
+
+    .modal-header {
+      margin-bottom: 20px;
+      padding-right: 40px;
+    }
+
+    .modal-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--gray-800);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: var(--gray-100);
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--gray-600);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .modal-close:hover {
+      background: var(--gray-200);
+      color: var(--gray-800);
+    }
+
+    .modal-body {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+    }
+
+    .modal-body .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .modal-body .data-table th {
+      background: var(--gray-50);
+      padding: 12px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-600);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid var(--gray-200);
+    }
+
+    .modal-body .data-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: 14px;
+    }
+
+    .modal-body .data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .modal-body .data-table td:first-child {
+      font-weight: 600;
+      color: var(--gray-700);
+    }
+
+    .modal-body .data-table td:last-child {
+      font-weight: 600;
+      color: var(--cyan-primary);
+    }
   </style>
 </head>
 <body>
-  <aside class="sidebar">
+  <header class="app-header">
+    <div class="header-logo">
+      <img src="https://i.imgur.com/U9aXSQB.png" alt="OceanStore">
+      <span>OceanStore</span>
+    </div>
+    <button class="header-menu-toggle" id="menuToggle">
+      <i class="ph ph-list"></i>
+    </button>
+  </header>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar">
+    <div class="sidebar-user-mobile"></div>
     <div class="sidebar-logo">
       <a href="overview.html">
         <div class="sidebar-logo-icon">
@@ -733,38 +1216,42 @@
       <ul class="nav-menu">
         <li class="nav-item">
           <a href="overview.html" class="nav-link active">
-            <svg viewBox="0 0 256 256" fill="currentColor">
-              <path d="M218.83,103.77l-80-75.48a1,1,0,0,1-.11-.11,17,17,0,0,0-23.44,0l-.11.11L37.17,103.77A16,16,0,0,0,32,115.55V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V160h32v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V115.55A16,16,0,0,0,218.83,103.77Z"></path>
-            </svg>
+            <i class="ph ph-house"></i>
             Dashboard
           </a>
         </li>
         <li class="nav-item">
           <a href="market.html" class="nav-link">
-            <svg viewBox="0 0 256 256" fill="currentColor">
-              <path d="M232,96a8,8,0,0,0-8-8H32a8,8,0,0,0-8,8V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16Zm-16,96H40V104H216Zm-8-40a12,12,0,1,1-12-12A12,12,0,0,1,208,152ZM64,48H192a8,8,0,0,1,0,16H64A8,8,0,0,1,64,48Z"></path>
-            </svg>
+            <i class="ph ph-storefront"></i>
             Loja
           </a>
         </li>
         <li class="nav-item">
           <a href="redemption.html" class="nav-link">
-            <svg viewBox="0 0 256 256" fill="currentColor">
-              <path d="M216,72H178.83L200.3,35.5a8,8,0,0,0-13.7-8.27L164.41,64H91.59L69.4,27.23a8,8,0,1,0-13.7,8.27L77.17,72H40A16,16,0,0,0,24,88V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V88A16,16,0,0,0,216,72Z"></path>
-            </svg>
+            <i class="ph ph-ticket"></i>
             Resgates
+          </a>
+        </li>
+        <li class="nav-item" id="admin-nav-item" style="display: none;">
+          <a href="painel.html" class="nav-link">
+            <i class="ph ph-shield"></i>
+            Admin
           </a>
         </li>
         <li class="nav-item">
           <a href="#" class="nav-link">
-            <svg viewBox="0 0 256 256" fill="currentColor">
-              <path d="M168,76a12,12,0,1,1-12-12A12,12,0,0,1,168,76Zm-12,52a12,12,0,1,0,12,12A12,12,0,0,0,156,128Zm0,64a12,12,0,1,0,12,12A12,12,0,0,0,156,192ZM128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Z"></path>
-            </svg>
+            <i class="ph ph-fish"></i>
             Fortune Fish
             <span style="margin-left: auto; font-size: 10px; color: var(--gray-400);">Em breve</span>
           </a>
         </li>
       </ul>
+      <div class="sidebar-logout-mobile">
+        <button onclick="Auth.logout()">
+          <i class="ph ph-sign-out"></i>
+          Sair
+        </button>
+      </div>
     </nav>
   </aside>
 
@@ -815,7 +1302,7 @@
       <div class="panel">
         <div class="panel-header">
           <h2 class="panel-title">Ranking</h2>
-          <a href="#" class="panel-link">Ver todos</a>
+          <a href="#" class="panel-link" onclick="openRankingModal(); return false;">Ver todos</a>
         </div>
         <div class="panel-body">
           <div class="loading" id="ranking-loading">Carregando ranking...</div>
@@ -826,7 +1313,7 @@
       <div class="panel">
         <div class="panel-header">
           <h2 class="panel-title">Últimos resgates</h2>
-          <a href="redemption.html" class="panel-link">Ver todos</a>
+          <a href="#" class="panel-link" onclick="openRedemptionsModal(); return false;">Ver todos</a>
         </div>
         <div class="panel-body">
           <div class="loading" id="redemptions-loading">Carregando resgates...</div>
@@ -835,6 +1322,52 @@
       </div>
     </div>
   </main>
+
+  <div class="modal" id="ranking-modal">
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <h2>Ranking completo</h2>
+        <button class="modal-close" onclick="closeRankingModal()">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+      <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+        <table class="data-table" style="width: 100%;">
+          <thead>
+            <tr>
+              <th>Posição</th>
+              <th>Nick</th>
+              <th>Pontos</th>
+            </tr>
+          </thead>
+          <tbody id="ranking-modal-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="redemptions-modal">
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <h2>Todos os resgates</h2>
+        <button class="modal-close" onclick="closeRedemptionsModal()">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+      <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+        <table class="data-table" style="width: 100%;">
+          <thead>
+            <tr>
+              <th>Usuário</th>
+              <th>Recompensa</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="redemptions-modal-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <script src="js/session.js"></script>
   <script src="js/supabase.js"></script>
@@ -1046,6 +1579,72 @@
       setInterval(updateStoreStatus, 30000);
       setInterval(loadDashboard, 30000);
     })();
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const menuToggle = document.getElementById('menuToggle');
+      const sidebar = document.querySelector('.sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      
+      if (menuToggle && sidebar && overlay) {
+        menuToggle.addEventListener('click', function() {
+          sidebar.classList.toggle('active');
+          overlay.classList.toggle('active');
+          const icon = menuToggle.querySelector('i');
+          if (sidebar.classList.contains('active')) {
+            icon.className = 'ph ph-x';
+          } else {
+            icon.className = 'ph ph-list';
+          }
+        });
+        
+        overlay.addEventListener('click', function() {
+          sidebar.classList.remove('active');
+          overlay.classList.remove('active');
+          const icon = menuToggle.querySelector('i');
+          icon.className = 'ph ph-list';
+        });
+      }
+
+      const user = SessionManager.getUser();
+      const adminNavItem = document.getElementById('admin-nav-item');
+      if (adminNavItem && user && user.isAdmin) {
+        adminNavItem.style.display = 'block';
+      }
+    });
+
+    window.openRankingModal = async function() {
+      const users = await DB.rankings.getFullRanking();
+      const tbody = document.getElementById('ranking-modal-body');
+      tbody.innerHTML = users.map((user, index) => `
+        <tr>
+          <td>#${index + 1}</td>
+          <td>${user.nick}</td>
+          <td>${user.points} pts</td>
+        </tr>
+      `).join('');
+      document.getElementById('ranking-modal').classList.add('active');
+    }
+
+    window.closeRankingModal = function() {
+      document.getElementById('ranking-modal').classList.remove('active');
+    }
+
+    window.openRedemptionsModal = async function() {
+      const redemptions = await DB.redemptions.getAll();
+      const tbody = document.getElementById('redemptions-modal-body');
+      tbody.innerHTML = redemptions.map(r => `
+        <tr>
+          <td>${r.users?.nick || 'Desconhecido'}</td>
+          <td>${r.reward_name || 'Recompensa'}</td>
+          <td><span class="status-badge status-${r.status}">${r.status}</span></td>
+        </tr>
+      `).join('');
+      document.getElementById('redemptions-modal').classList.add('active');
+    }
+
+    window.closeRedemptionsModal = function() {
+      document.getElementById('redemptions-modal').classList.remove('active');
+    }
   </script>
 </body>
 </html>
