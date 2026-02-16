@@ -32,7 +32,7 @@ const ProfileHeader = {
         </div>
         ${user.isAdmin ? `
         <div class="dropdown-divider"></div>
-        <a href="admin.html" class="dropdown-link">Painel Admin</a>
+        <a href="painel.html" class="dropdown-link">Painel admin</a>
         ` : ''}
         <div class="dropdown-divider"></div>
         <button class="logout-btn" onclick="Auth.logout()">Sair</button>
