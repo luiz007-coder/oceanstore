@@ -127,6 +127,39 @@ const SheetsAPI = {
     } catch {
       return false;
     }
+  },
+
+  async getAllMembers() {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEETS_ID}/values/Listagem de Membros!B2:B1000?key=${SHEETS_API_KEY}`;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      return data.values ? data.values.map(row => row[0].trim()) : [];
+    } catch (error) {
+      console.error('Erro ao buscar membros:', error);
+      return [];
+    }
+  }
+};
+
+const Toast = {
+  show(message, type = 'success', duration = 3000) {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+      <svg viewBox="0 0 256 256" fill="currentColor">
+        ${type === 'success' ? '<path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm45.66-125.66a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,140.69l50.34-50.35A8,8,0,0,1,173.66,90.34Z"/>' : 
+        type === 'error' ? '<path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-80V80a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm20,36a12,12,0,1,1-12-12A12,12,0,0,1,140,172Z"/>' :
+        '<path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"/>'}
+      </svg>
+      <span>${message}</span>
+    `;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.classList.add('toast-hide');
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
   }
 };
 
@@ -153,7 +186,8 @@ const DB = {
     
     async create(data) {
       try {
-        return await SupabaseClient.insert('users', data);
+        const result = await SupabaseClient.insert('users', data);
+        return result;
       } catch (error) {
         console.error('Erro ao criar usuário:', error);
         throw error;
@@ -173,22 +207,35 @@ const DB = {
       return this.update(id, { points });
     },
     
+    async ban(id) {
+      return this.update(id, { banned: true, banned_at: new Date().toISOString() });
+    },
+    
+    async unban(id) {
+      return this.update(id, { banned: false, banned_at: null });
+    },
+    
     async findOrCreate(nick) {
       try {
         let user = await this.getByNick(nick);
         
         if (user) {
+          if (user.banned) {
+            throw new Error('Usuário banido');
+          }
+          
           const isAdmin = await SheetsAPI.checkIsAdmin(nick);
           if (user.is_admin !== isAdmin) {
             await this.update(user.id, { is_admin: isAdmin });
             user.is_admin = isAdmin;
           }
+          
           return { 
             created: false,
             user: { 
               id: user.id, 
               nick: user.nick, 
-              points: user.points,
+              points: user.points || 0,
               isAdmin: user.is_admin
             } 
           };
@@ -199,6 +246,7 @@ const DB = {
           nick,
           points: 0,
           is_admin: isAdmin,
+          banned: false,
           created_at: new Date().toISOString()
         };
         
@@ -210,7 +258,7 @@ const DB = {
           user: { 
             id: newUserData.id, 
             nick: newUserData.nick, 
-            points: newUserData.points,
+            points: newUserData.points || 0,
             isAdmin: newUserData.is_admin
           } 
         };
@@ -227,7 +275,7 @@ const DB = {
       try {
         return await SupabaseClient.select('redemptions', { 
           order: { column: 'created_at', ascending: false },
-          select: '*, users(nick)'
+          select: '*, users!redemptions_user_id_fkey(nick)'
         });
       } catch (error) {
         console.error('Erro ao buscar resgates:', error);
@@ -297,7 +345,7 @@ const DB = {
         
         const users = await DB.users.getAll();
         return users
-          .filter(u => userIds.includes(u.id))
+          .filter(u => userIds.includes(u.id) && !u.banned)
           .sort((a, b) => a.points - b.points);
       } catch (error) {
         console.error('Erro ao buscar fila:', error);
@@ -319,6 +367,46 @@ const DB = {
       } catch (error) {
         console.error('Erro ao buscar vez atual:', error);
         return null;
+      }
+    },
+    
+    async processNextTurn() {
+      try {
+        const store = await DB.store.getStatus();
+        if (!store.is_open) return null;
+        
+        const queue = await this.getQueue();
+        if (queue.length === 0) {
+          await SupabaseClient.update('store_settings', 1, { 
+            current_user_id: null,
+            turn_start_time: null
+          });
+          return null;
+        }
+        
+        const nextUser = queue[0];
+        await SupabaseClient.update('store_settings', 1, { 
+          current_user_id: nextUser.id,
+          turn_start_time: new Date().toISOString()
+        });
+        
+        return nextUser;
+      } catch (error) {
+        console.error('Erro ao processar próximo turno:', error);
+        return null;
+      }
+    },
+    
+    async completeTurn(userId) {
+      try {
+        const store = await DB.store.getStatus();
+        if (store.current_user_id !== userId) return false;
+        
+        await this.processNextTurn();
+        return true;
+      } catch (error) {
+        console.error('Erro ao completar turno:', error);
+        return false;
       }
     }
   },
@@ -407,7 +495,7 @@ const DB = {
       }
     },
     
-    async submit(userId, missionId) {
+    async submit(userId, missionId, proofUrl) {
       try {
         const mission = await SupabaseClient.select('missions', { eq: { id: missionId } });
         if (!mission || !mission[0]) throw new Error('Missão não encontrada');
@@ -417,6 +505,7 @@ const DB = {
           mission_id: missionId,
           points_earned: mission[0].points,
           status: 'pending',
+          proof_url: proofUrl,
           completed_at: new Date().toISOString()
         });
       } catch (error) {
@@ -444,6 +533,38 @@ const DB = {
           eq: { user_id: userId },
           order: { column: 'completed_at', ascending: false },
           select: '*, missions(name, points)'
+        });
+      } catch (error) {
+        console.error('Erro ao buscar missões do usuário:', error);
+        return [];
+      }
+    },
+    
+    async getTodayCount() {
+      try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const result = await SupabaseClient.select('user_missions', {
+          select: 'id',
+          eq: { status: 'approved' },
+          gte: { completed_at: today.toISOString() },
+          lt: { completed_at: tomorrow.toISOString() }
+        });
+        
+        return result ? result.length : 0;
+      } catch (error) {
+        console.error('Erro ao contar missões hoje:', error);
+        return 0;
+      }
+    },
+    
+    async getByUser(userId) {
+      try {
+        return await SupabaseClient.select('user_missions', {
+          eq: { user_id: userId }
         });
       } catch (error) {
         console.error('Erro ao buscar missões do usuário:', error);
@@ -500,7 +621,8 @@ const DB = {
     async getTop(limit = 10) {
       try {
         return await SupabaseClient.select('users', { 
-          select: 'nick,points',
+          select: 'nick,points,is_admin,banned',
+          eq: { banned: false },
           order: { column: 'points', ascending: false },
           limit 
         });
@@ -514,6 +636,7 @@ const DB = {
       try {
         const users = await SupabaseClient.select('users', { 
           select: 'id,points',
+          eq: { banned: false },
           order: { column: 'points', ascending: false }
         });
         if (!users) return 0;
@@ -528,7 +651,7 @@ const DB = {
     async getFullRanking() {
       try {
         return await SupabaseClient.select('users', {
-          select: 'id,nick,points,is_admin',
+          select: 'id,nick,points,is_admin,banned',
           order: { column: 'points', ascending: false }
         });
       } catch (error) {
@@ -547,7 +670,8 @@ const DB = {
           next_open_date: null,
           current_user_id: null,
           turn_start_time: null,
-          queue: []
+          auto_close_date: null,
+          last_reset_date: null
         };
       } catch (error) {
         console.error('Erro ao buscar status da loja:', error);
@@ -557,13 +681,26 @@ const DB = {
     
     async setStatus(isOpen, nextOpenDate = null) {
       try {
+        let autoCloseDate = null;
+        if (isOpen) {
+          const closeDate = new Date();
+          closeDate.setDate(closeDate.getDate() + 5);
+          autoCloseDate = closeDate.toISOString();
+          
+          const queue = await DB.redemptions.getQueue();
+          if (queue.length > 0) {
+            await DB.redemptions.processNextTurn();
+          }
+        }
+        
         const existing = await SupabaseClient.select('store_settings', { eq: { id: 1 } });
         if (existing && existing.length > 0) {
           return await SupabaseClient.update('store_settings', 1, { 
             is_open: isOpen, 
             next_open_date: nextOpenDate,
-            current_user_id: isOpen ? null : existing[0].current_user_id,
-            turn_start_time: null,
+            auto_close_date: autoCloseDate,
+            current_user_id: isOpen ? existing[0].current_user_id : null,
+            turn_start_time: isOpen ? existing[0].turn_start_time : null,
             updated_at: new Date().toISOString()
           });
         } else {
@@ -571,8 +708,10 @@ const DB = {
             id: 1, 
             is_open: isOpen, 
             next_open_date: nextOpenDate,
+            auto_close_date: autoCloseDate,
             current_user_id: null,
             turn_start_time: null,
+            last_reset_date: null,
             created_at: new Date().toISOString()
           });
         }
@@ -582,46 +721,75 @@ const DB = {
       }
     },
     
-    async startTurn(userId) {
-      try {
-        return await SupabaseClient.update('store_settings', 1, {
-          current_user_id: userId,
-          turn_start_time: new Date().toISOString()
-        });
-      } catch (error) {
-        console.error('Erro ao iniciar turno:', error);
-        return null;
-      }
-    },
-    
-    async nextTurn() {
+    async checkAutoClose() {
       try {
         const store = await this.getStatus();
-        const users = await DB.users.getAll();
-
-        const currentIndex = users.findIndex(u => u.id === store.current_user_id);
-
-        const nextUser = users[currentIndex + 1];
+        if (!store.is_open || !store.auto_close_date) return false;
         
-        if (nextUser) {
-          return await SupabaseClient.update('store_settings', 1, {
-            current_user_id: nextUser.id,
-            turn_start_time: new Date().toISOString()
-          });
-        } else {
-          return await SupabaseClient.update('store_settings', 1, {
+        const now = new Date();
+        const closeDate = new Date(store.auto_close_date);
+
+        if (now >= closeDate) {
+          const users = await DB.users.getAll();
+          for (const user of users) {
+            await DB.users.update(user.id, { points: 0 });
+          }
+
+          const nextDate = new Date();
+          if (nextDate.getDate() >= 10) {
+            if (nextDate.getMonth() === 11) {
+              nextDate.setFullYear(nextDate.getFullYear() + 1, 0, 5);
+            } else {
+              nextDate.setMonth(nextDate.getMonth() + 1, 5);
+            }
+          } else {
+            nextDate.setDate(5);
+          }
+          
+          await this.setStatus(false, nextDate.toISOString());
+          
+          await SupabaseClient.update('store_settings', 1, { 
+            last_reset_date: now.toISOString(),
             current_user_id: null,
             turn_start_time: null
           });
+          
+          return true;
         }
+        return false;
       } catch (error) {
-        console.error('Erro ao passar turno:', error);
-        return null;
+        console.error('Erro no auto close:', error);
+        return false;
       }
     },
     
-    async skipTurn() {
-      return this.nextTurn();
+    async checkAndOpenNext() {
+      try {
+        const store = await this.getStatus();
+        if (store.is_open) return false;
+        
+        const now = new Date();
+        const currentDay = now.getDate();
+
+        if (currentDay === 5) {
+          if (!store.next_open_date || new Date(store.next_open_date) <= now) {
+            const closeDate = new Date();
+            closeDate.setDate(closeDate.getDate() + 5);
+            
+            await this.setStatus(true, null);
+
+            await SupabaseClient.update('store_settings', 1, { 
+              auto_close_date: closeDate.toISOString()
+            });
+            
+            return true;
+          }
+        }
+        return false;
+      } catch (error) {
+        console.error('Erro no auto open:', error);
+        return false;
+      }
     },
     
     async getRemainingTime() {
@@ -641,16 +809,58 @@ const DB = {
       }
     },
     
-    async checkAndAutoSkip() {
+    async getRemainingDays() {
       try {
+        const store = await this.getStatus();
+        if (!store.is_open || !store.auto_close_date) return 0;
+        
+        const now = new Date();
+        const closeDate = new Date(store.auto_close_date);
+        const diffTime = closeDate - now;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        return diffDays > 0 ? diffDays : 0;
+      } catch (error) {
+        console.error('Erro ao calcular dias restantes:', error);
+        return 0;
+      }
+    },
+  
+    async calculateNextOpenDate() {
+      const now = new Date();
+      const currentDay = now.getDate();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      
+      let nextOpenDate;
+
+      if (currentDay < 5) {
+        nextOpenDate = new Date(currentYear, currentMonth, 5, 0, 0, 0);
+      } 
+      else {
+        if (currentMonth === 11) {
+          nextOpenDate = new Date(currentYear + 1, 0, 5, 0, 0, 0);
+        } else {
+          nextOpenDate = new Date(currentYear, currentMonth + 1, 5, 0, 0, 0);
+        }
+      }
+      
+      return nextOpenDate.toISOString();
+    },
+    
+    async checkTurnExpired() {
+      try {
+        const store = await this.getStatus();
+        if (!store.is_open || !store.current_user_id || !store.turn_start_time) return false;
+        
         const remaining = await this.getRemainingTime();
         if (remaining <= 0) {
-          await this.nextTurn();
+          await DB.redemptions.processNextTurn();
           return true;
         }
         return false;
       } catch (error) {
-        console.error('Erro no auto skip:', error);
+        console.error('Erro ao verificar turno expirado:', error);
         return false;
       }
     }
