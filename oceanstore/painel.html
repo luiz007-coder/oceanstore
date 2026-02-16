@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OceanStore - Admin</title>
+  <link rel="icon" type="image/png" href="https://i.imgur.com/U9aXSQB.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --cyan-primary: #75afca;
+      --cyan-dark: #6095af;
+      --cyan-light: #7dd3fc;
+      --cyan-muted: #f0f9ff;
+      --white: #ffffff;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-500: #64748b;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1e293b;
+      --gray-900: #0f172a;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    body {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gray-50);
+      min-height: 100vh;
+      color: var(--gRay-800);
+    }
+
+    #profile-header {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+
+    .profile-trigger {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      background: rgba(96, 149, 175, 0.13);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      border: 2px solid var(--gray-200);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .profile-nick {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--gray-800);
+    }
+
+    .profile-points {
+      display: none;
+    }
+
+    .profile-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 240px;
+      background: rgba(96, 149, 175, 0.13);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      border: 2px solid var(--gray-200);
+      border-radius: 13px;
+      padding: 11px 0;
+      display: none;
+    }
+
+    .profile-dropdown.active {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .dropdown-item {
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dropdown-item .label {
+      font-size: 12px;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .dropdown-item .value {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .dropdown-divider {
+      height: 1px;
+      background: var(--gray-200);
+      margin: 8px 0;
+    }
+
+    .dropdown-link {
+      display: block;
+      padding: 10px 16px;
+      font-size: 14px;
+      color: var(--cyan-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .dropdown-link:hover {
+      background: var(--gray-50);
+    }
+
+    .logout-btn {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      width: calc(100% - 32px);
+      margin: 8px 16px 0;
+      padding: 10px;
+      background: var(--danger);
+      color: var(--white);
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .logout-btn:hover {
+      background: #dc2626;
+    }
+
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 260px;
+      height: 100vh;
+      background: var(--white);
+      border-right: 2px solid var(--gray-200);
+      padding: 22px 0;
+    }
+
+    .sidebar-logo {
+      padding: 0 18px 18px;
+      border-bottom: 2px solid var(--gray-200);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-logo a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .sidebar-logo-icon {
+      width: 44px !important;
+      height: 44px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    .sidebar-logo-icon img {
+      width: 46px !important;
+      height: 46px !important;
+      max-width: none !important;
+      max-height: none !important;
+      object-fit: contain !important;
+      display: block !important;
+      position: relative !important;
+      transform: scale(1.1);
+    }
+
+    .sidebar-logo-text {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--gray-800);
+    }
+
+    .nav-menu {
+      list-style: none;
+      padding: 0 12px;
+    }
+
+    .nav-item {
+      margin-bottom: 4px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      text-decoration: none;
+      color: var(--gray-600);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .nav-link:hover {
+      background: var(--gray-50);
+      color: var(--gray-800);
+    }
+
+    .nav-link.active {
+      background: var(--cyan-muted);
+      color: var(--cyan-primary);
+    }
+
+    .nav-link svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .main-content {
+      margin-left: 260px;
+      padding: 32px;
+      min-height: 100vh;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .page-header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--gray-800);
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      font-size: 15px;
+      color: var(--gray-500);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border: 2px solid var(--gray-200);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .stat-card .label {
+      font-size: 12px;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .stat-card .value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--gray-800);
+    }
+
+    .admin-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--gray-200);
+      padding-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--gray-600);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      background: var(--gray-100);
+      color: var(--gray-800);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--cyan-primary), var(--cyan-dark));
+      color: var(--white);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .panel {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--white);
+      border: 2px solid var(--gray-200);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 20px 24px;
+      border-bottom: 2px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 16px 24px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .data-table th {
+      background: var(--gray-50);
+      font-weight: 600;
+      color: var(--gray-600);
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+
+    .data-table tr {
+      border-bottom: 2px solid var(--gray-100);
+    }
+
+    .data-table tr:last-child {
+      border-bottom: none;
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .status-pending {
+      background: #fef3c7;
+      color: #d97706;
+    }
+
+    .status-approved {
+      background: #d1fae5;
+      color: #059669;
+    }
+
+    .status-rejected {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .action-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: var(--white);
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: var(--white);
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan-primary), var(--cyan-dark));
+      color: var(--white);
+    }
+
+    .btn-primary:hover {
+      background: var(--cyan-dark);
+    }
+
+    .btn-secondary {
+      background: var(--gray-100);
+      color: var(--gray-700);
+    }
+
+    .btn-secondary:hover {
+      background: var(--gray-200);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      padding: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group.full-width {
+      grid-column: span 2;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="datetime-local"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 14px;
+      border: 2px solid var(--gray-200);
+      border-radius: 8px;
+      background: var(--white);
+      color: var(--gray-800);
+      transition: all 0.2s ease;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--cyan-primary);
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 40px;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--white);
+      border: 2px solid var(--gray-200);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 500px;
+      padding: 32px;
+    }
+
+    .modal-header {
+      margin-bottom: 24px;
+    }
+
+    .modal-header h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--gray-500);
+      font-size: 14px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--gray-300);
+      transition: .3s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--success);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    .current-turn-box {
+      background: linear-gradient(135deg, var(--cyan-muted), var(--white));
+      border: 2px solid var(--cyan-primary);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .turn-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .turn-info .label {
+      font-size: 12px;
+      color: var(--gray-500);
+      text-transform: uppercase;
+    }
+
+    .turn-info .value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--cyan-primary);
+    }
+
+    .timer {
+      font-family: monospace;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--cyan-dark);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 1024px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .form-group.full-width {
+        grid-column: span 1;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        border-right: none;
+        border-bottom: 2px solid var(--gray-200);
+      }
+      .main-content {
+        margin-left: 0;
+      }
+      #profile-header {
+        position: relative;
+        top: auto;
+        right: auto;
+        padding: 16px;
+      }
+      .admin-tabs {
+        flex-wrap: wrap;
+      }
+      .data-table {
+        display: block;
+        overflow-x: auto;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="overview.html">
+        <div class="sidebar-logo-icon">
+          <img src="https://i.imgur.com/U9aXSQB.png" alt="OceanStore">
+        </div>
+        <span class="sidebar-logo-text">OceanStore</span>
+      </a>
+    </div>
+    <nav>
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="overview.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>Dashboard</a></li>
+        <li class="nav-item"><a href="market.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 01-8 0"/></svg>Loja</a></li>
+        <li class="nav-item"><a href="redemption.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v13M3 8h18M7 8V5a2 2 0 012-2h6a2 2 0 012 2v3"/></svg>Resgates</a></li>
+        <li class="nav-item"><a href="painel.html" class="nav-link active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>Admin</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1>Painel Administrativo</h1>
+        <p>Gerencie missões, recompensas, usuários e fila de resgate.</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary" onclick="openAssignMissionModal()">Atribuir missão</button>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="label">Total de usuários</div><div class="value" id="total-users">0</div></div>
+      <div class="stat-card"><div class="label">Missões hoje</div><div class="value" id="missions-today">0</div></div>
+      <div class="stat-card"><div class="label">Pontos distribuídos</div><div class="value" id="total-points">0</div></div>
+      <div class="stat-card"><div class="label">Resgates pendentes</div><div class="value" id="pending-count">0</div></div>
+    </div>
+
+    <div class="admin-tabs">
+      <button class="tab-btn active" onclick="showTab('missions')">Gerenciar missões</button>
+      <button class="tab-btn" onclick="showTab('pending-missions')">Missões pendentes</button>
+      <button class="tab-btn" onclick="showTab('rewards')">Recompensas</button>
+      <button class="tab-btn" onclick="showTab('users')">Usuários</button>
+      <button class="tab-btn" onclick="showTab('queue')">Fila</button>
+      <button class="tab-btn" onclick="showTab('store')">Configurações</button>
+      <button class="tab-btn" onclick="showTab('points')">Gerenciar pontos</button>
+    </div>
+
+    <div id="tab-missions" class="tab-content active">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Gerenciar missões</h2>
+          <button class="btn btn-primary" onclick="openMissionModal()">Nova missão</button>
+        </div>
+        <div class="loading" id="missions-loading">Carregando missões...</div>
+        <table class="data-table" id="missions-table" style="display: none;">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Descrição</th>
+              <th>Pontos</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="missions-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-pending-missions" class="tab-content">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Missões pendentes</h2>
+          <span class="status-badge status-pending" id="pending-missions-count">0 pendentes</span>
+        </div>
+        <div class="loading" id="pending-missions-loading">Carregando missões pendentes...</div>
+        <table class="data-table" id="pending-missions-table" style="display: none;">
+          <thead>
+            <tr>
+              <th>Usuário</th>
+              <th>Missão</th>
+              <th>Pontos</th>
+              <th>Data</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="pending-missions-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-rewards" class="tab-content">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Gerenciar recompensas</h2>
+          <button class="btn btn-primary" onclick="openRewardModal()">Nova recompensa</button>
+        </div>
+        <div class="loading" id="rewards-loading">Carregando recompensas...</div>
+        <table class="data-table" id="rewards-table" style="display: none;">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Categoria</th>
+              <th>Custo</th>
+              <th>Imagem</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="rewards-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-users" class="tab-content">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Ranking de usuários</h2>
+        </div>
+        <div class="loading" id="users-loading">Carregando usuários...</div>
+        <table class="data-table" id="users-table" style="display: none;">
+          <thead>
+            <tr>
+              <th>Posição</th>
+              <th>Nick</th>
+              <th>Pontos</th>
+              <th>Missões</th>
+              <th>Admin</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="users-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-queue" class="tab-content">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Controle de fila</h2>
+          <div>
+            <span id="current-turn-info"></span>
+            <button class="btn btn-primary" onclick="skipTurn()" id="skip-turn-btn">Pular vez</button>
+          </div>
+        </div>
+        <div id="current-turn-box" class="current-turn-box" style="display: none;">
+          <div class="turn-info">
+            <span class="label">Vez atual:</span>
+            <span class="value" id="current-turn-nick">---</span>
+          </div>
+          <div class="turn-info">
+            <span class="label">Tempo restante:</span>
+            <span class="timer" id="turn-timer">60:00</span>
+          </div>
+        </div>
+        <div class="loading" id="queue-loading">Carregando fila...</div>
+        <table class="data-table" id="queue-table" style="display: none;">
+          <thead>
+            <tr>
+              <th>Posição</th>
+              <th>Nick</th>
+              <th>Pontos</th>
+              <th>Missões pendentes</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="queue-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-store" class="tab-content">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Configurações da loja</h2>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Status da Loja</label>
+            <label class="switch">
+              <input type="checkbox" id="store-status" onchange="toggleStoreStatus()">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label for="next-opening">Próxima abertura</label>
+            <input type="datetime-local" id="next-opening">
+          </div>
+          <div class="form-group full-width">
+            <button class="btn btn-primary" onclick="saveStoreSettings()">Salvar configurações</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-points" class="tab-content">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Gerenciar pontos</h2>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="points-nick">Nick do usuário</label>
+            <input type="text" id="points-nick" placeholder="Digite o nick">
+          </div>
+          <div class="form-group">
+            <label for="points-amount">Quantidade</label>
+            <input type="number" id="points-amount" placeholder="0" min="1">
+          </div>
+          <div class="form-group full-width">
+            <label for="points-reason">Motivo</label>
+            <textarea id="points-reason" placeholder="Motivo da alteração"></textarea>
+          </div>
+          <div class="form-group full-width" style="display: flex; gap: 10px;">
+            <button class="btn btn-primary" onclick="addPoints()" style="flex: 1;">Adicionar pontos</button>
+            <button class="btn btn-danger" onclick="removePoints()" style="flex: 1;">Remover pontos</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal" id="mission-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="mission-modal-title">Nova missão</h2>
+      </div>
+      <div class="form-group">
+        <label for="mission-name">Nome</label>
+        <input type="text" id="mission-name" placeholder="Ex: Cumprir meta">
+      </div>
+      <div class="form-group">
+        <label for="mission-description">Descrição</label>
+        <textarea id="mission-description" placeholder="Descrição da missão"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="mission-points">Pontos</label>
+        <input type="number" id="mission-points" placeholder="0" min="1">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeMissionModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveMission()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="reward-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Nova recompensa</h2>
+      </div>
+      <div class="form-group">
+        <label for="reward-name">Nome</label>
+        <input type="text" id="reward-name" placeholder="Nome da recompensa">
+      </div>
+      <div class="form-group">
+        <label for="reward-description">Descrição</label>
+        <textarea id="reward-description" placeholder="Descrição da recompensa"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="reward-category">Categoria</label>
+        <select id="reward-category">
+          <option value="diamond">Diamante</option>
+          <option value="gold">Ouro</option>
+          <option value="silver">Prata</option>
+          <option value="bronze">Bronze</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="reward-cost">Custo (pontos)</label>
+        <input type="number" id="reward-cost" placeholder="0" min="1">
+      </div>
+      <div class="form-group">
+        <label for="reward-image">URL da Imagem</label>
+        <input type="text" id="reward-image" placeholder="https://i.imgur.com/imagem.png">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeRewardModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveReward()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="assign-mission-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Atribuir missão</h2>
+      </div>
+      <div class="form-group">
+        <label for="assign-user">Usuário</label>
+        <select id="assign-user">
+          <option value="">Carregando...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="assign-mission">Missão</label>
+        <select id="assign-mission">
+          <option value="">Carregando...</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAssignMissionModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="assignMission()">Atribuir e adicionar pontos</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="reject-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Rejeitar resgate</h2>
+      </div>
+      <div class="form-group">
+        <label for="reject-reason">Motivo da rejeição</label>
+        <textarea id="reject-reason" placeholder="Digite o motivo da rejeição..." rows="4"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeRejectModal()">Cancelar</button>
+        <button class="btn btn-danger" onclick="confirmReject()">Rejeitar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/session.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/profile-header.js"></script>
+  <script>
+    (async function() {
+      if (!(await Auth.checkAuth()) || !(await Auth.checkAdmin())) return;
+      ProfileHeader.init();
+
+      let editingMissionId = null;
+      let editingRewardId = null;
+      let timerInterval = null;
+
+      window.showTab = function(tab) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById(`tab-${tab}`).classList.add('active');
+      };
+
+      // ==================== STATS ====================
+      async function loadStats() {
+        try {
+          const users = await DB.users.getAll();
+          const missions = await DB.user_missions?.getToday() || [];
+          const totalPoints = users.reduce((sum, u) => sum + (u.points || 0), 0);
+          const pending = await DB.redemptions.getPending();
+          
+          document.getElementById('total-users').textContent = users.length;
+          document.getElementById('missions-today').textContent = missions.length;
+          document.getElementById('total-points').textContent = totalPoints.toLocaleString();
+          document.getElementById('pending-count').textContent = pending.length;
+        } catch (error) {
+          console.error('Erro ao carregar stats:', error);
+        }
+      }
+
+      // ==================== MISSÕES ====================
+      window.openMissionModal = function(editId = null) {
+        editingMissionId = editId;
+        document.getElementById('mission-modal-title').textContent = editId ? 'Editar Missão' : 'Nova Missão';
+        if (!editId) {
+          document.getElementById('mission-name').value = '';
+          document.getElementById('mission-description').value = '';
+          document.getElementById('mission-points').value = '';
+        }
+        document.getElementById('mission-modal').classList.add('active');
+      };
+
+      window.closeMissionModal = function() {
+        document.getElementById('mission-modal').classList.remove('active');
+        editingMissionId = null;
+      };
+
+      window.saveMission = async function() {
+        const name = document.getElementById('mission-name').value.trim();
+        const description = document.getElementById('mission-description').value.trim();
+        const points = parseInt(document.getElementById('mission-points').value);
+
+        if (!name || !points) {
+          alert('Preencha nome e pontos');
+          return;
+        }
+
+        try {
+          const missionData = { name, description: description || null, points };
+          if (editingMissionId) {
+            await DB.missions.update(editingMissionId, missionData);
+          } else {
+            await DB.missions.create(missionData);
+          }
+          await loadMissions();
+          closeMissionModal();
+        } catch (error) {
+          console.error('Erro ao salvar missão:', error);
+          alert('Erro ao salvar missão');
+        }
+      };
+
+      window.loadMissions = async function() {
+        try {
+          const missions = await DB.missions.getAll();
+          const tbody = document.getElementById('missions-body');
+          const table = document.getElementById('missions-table');
+          const loading = document.getElementById('missions-loading');
+
+          if (!missions || missions.length === 0) {
+            loading.textContent = 'Nenhuma missão cadastrada';
+            return;
+          }
+
+          loading.style.display = 'none';
+          table.style.display = 'table';
+          tbody.innerHTML = missions.map(m => `
+            <tr>
+              <td>${m.name}</td>
+              <td>${m.description || '-'}</td>
+              <td>${m.points}</td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn btn-primary" onclick="openMissionModal(${m.id})">Editar</button>
+                  <button class="btn btn-danger" onclick="deleteMission(${m.id})">Excluir</button>
+                </div>
+              </td>
+            </tr>
+          `).join('');
+        } catch (error) {
+          console.error('Erro ao carregar missões:', error);
+          document.getElementById('missions-loading').textContent = 'Erro ao carregar missões';
+        }
+      };
+
+      window.deleteMission = async function(id) {
+        if (!confirm('Tem certeza que deseja excluir esta missão?')) return;
+        try {
+          await DB.missions.delete(id);
+          await loadMissions();
+        } catch (error) {
+          console.error('Erro ao excluir missão:', error);
+          alert('Erro ao excluir missão');
+        }
+      };
+
+      // ==================== RECOMPENSAS ====================
+      window.openRewardModal = function(editId = null) {
+        editingRewardId = editId;
+        if (!editId) {
+          document.getElementById('reward-name').value = '';
+          document.getElementById('reward-description').value = '';
+          document.getElementById('reward-category').value = 'diamond';
+          document.getElementById('reward-cost').value = '';
+          document.getElementById('reward-image').value = '';
+        }
+        document.getElementById('reward-modal').classList.add('active');
+      };
+
+      window.closeRewardModal = function() {
+        document.getElementById('reward-modal').classList.remove('active');
+        editingRewardId = null;
+      };
+
+      window.saveReward = async function() {
+        const name = document.getElementById('reward-name').value.trim();
+        const description = document.getElementById('reward-description').value.trim();
+        const category = document.getElementById('reward-category').value;
+        const cost = parseInt(document.getElementById('reward-cost').value);
+        const image = document.getElementById('reward-image').value.trim();
+
+        if (!name || !cost) {
+          alert('Preencha nome e custo');
+          return;
+        }
+
+        try {
+          const rewardData = { name, description: description || null, category, cost, image_url: image };
+          if (editingRewardId) {
+            await DB.rewards.update(editingRewardId, rewardData);
+          } else {
+            await DB.rewards.create(rewardData);
+          }
+          await loadRewards();
+          closeRewardModal();
+        } catch (error) {
+          console.error('Erro ao salvar recompensa:', error);
+          alert('Erro ao salvar recompensa');
+        }
+      };
+
+      window.loadRewards = async function() {
+        try {
+          const rewards = await DB.rewards.getAll();
+          const tbody = document.getElementById('rewards-body');
+          const table = document.getElementById('rewards-table');
+          const loading = document.getElementById('rewards-loading');
+
+          if (!rewards || rewards.length === 0) {
+            loading.textContent = 'Nenhuma recompensa encontrada';
+            return;
+          }
+
+          loading.style.display = 'none';
+          table.style.display = 'table';
+          tbody.innerHTML = rewards.map(r => `
+            <tr>
+              <td>${r.name}</td>
+              <td>${r.category}</td>
+              <td>${r.cost} pts</td>
+              <td>${r.image_url ? '✅' : '❌'}</td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn btn-primary" onclick="openRewardModal(${r.id})">Editar</button>
+                  <button class="btn btn-danger" onclick="deleteReward(${r.id})">Excluir</button>
+                </div>
+              </td>
+            </tr>
+          `).join('');
+        } catch (error) {
+          console.error('Erro ao carregar recompensas:', error);
+          document.getElementById('rewards-loading').textContent = 'Erro ao carregar recompensas';
+        }
+      };
+
+      window.deleteReward = async function(id) {
+        if (!confirm('Tem certeza que deseja excluir esta recompensa?')) return;
+        try {
+          await DB.rewards.delete(id);
+          await loadRewards();
+        } catch (error) {
+          console.error('Erro ao excluir recompensa:', error);
+          alert('Erro ao excluir recompensa');
+        }
+      };
+
+      // ==================== USUÁRIOS ====================
+      window.loadUsers = async function() {
+        try {
+          const users = await DB.rankings.getFullRanking();
+          const tbody = document.getElementById('users-body');
+          const table = document.getElementById('users-table');
+          const loading = document.getElementById('users-loading');
+
+          if (!users || users.length === 0) {
+            loading.textContent = 'Nenhum usuário encontrado';
+            return;
+          }
+
+          loading.style.display = 'none';
+          table.style.display = 'table';
+          tbody.innerHTML = '';
+
+          for (let i = 0; i < users.length; i++) {
+            const u = users[i];
+            const missions = await DB.user_missions?.getByUser(u.id) || [];
+            tbody.innerHTML += `
+              <tr>
+                <td>#${i + 1}</td>
+                <td>${u.nick} ${u.is_admin ? '👑' : ''}</td>
+                <td>${u.points}</td>
+                <td>${missions.length}</td>
+                <td>${u.is_admin ? 'Sim' : 'Não'}</td>
+                <td>
+                  <div class="action-btns">
+                    <button class="btn btn-primary" onclick="editUser('${u.id}')">Editar</button>
+                    <button class="btn btn-danger" onclick="banUser('${u.id}')">Banir</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }
+        } catch (error) {
+          console.error('Erro ao carregar usuários:', error);
+          document.getElementById('users-loading').textContent = 'Erro ao carregar usuários';
+        }
+      };
+
+      window.editUser = function(id) { alert('Editar usuário em desenvolvimento'); };
+      window.banUser = function(id) { alert('Banir usuário em desenvolvimento'); };
+
+      // ==================== FILA ====================
+      window.loadQueue = async function() {
+        try {
+          const store = await DB.store.getStatus();
+          const users = await DB.users.getAll();
+          const pendingMissions = await DB.user_missions?.getPending() || [];
+          
+          const userIdsWithPending = [...new Set(pendingMissions.map(m => m.user_id))];
+          let queue = users.filter(u => userIdsWithPending.includes(u.id));
+          queue.sort((a, b) => b.points - a.points);
+
+          const tbody = document.getElementById('queue-body');
+          const table = document.getElementById('queue-table');
+          const loading = document.getElementById('queue-loading');
+          const currentBox = document.getElementById('current-turn-box');
+          const currentNick = document.getElementById('current-turn-nick');
+          const skipBtn = document.getElementById('skip-turn-btn');
+          const turnInfo = document.getElementById('current-turn-info');
+
+          if (queue.length === 0) {
+            loading.textContent = 'Nenhum usuário na fila';
+            loading.style.display = 'block';
+            table.style.display = 'none';
+            currentBox.style.display = 'none';
+            turnInfo.innerHTML = '⏸️ Fila vazia';
+            skipBtn.disabled = true;
+            return;
+          }
+
+          loading.style.display = 'none';
+          table.style.display = 'table';
+
+          if (store.is_open) {
+            if (store.current_user_id) {
+              const current = users.find(u => u.id === store.current_user_id);
+              currentNick.textContent = current?.nick || '---';
+              currentBox.style.display = 'flex';
+              skipBtn.disabled = false;
+              turnInfo.innerHTML = `🎮 Vez: ${current?.nick}`;
+              startTimer(store.turn_start_time);
+            } else {
+              await DB.store.startTurn(queue[0].id);
+              location.reload();
+            }
+          } else {
+            currentBox.style.display = 'none';
+            skipBtn.disabled = true;
+            turnInfo.innerHTML = '🔴 Loja fechada';
+          }
+
+          tbody.innerHTML = queue.map((user, index) => {
+            const isCurrent = store.current_user_id === user.id;
+            const userPending = pendingMissions.filter(m => m.user_id === user.id).length;
+            return `
+              <tr style="${isCurrent ? 'background-color: rgba(14,165,233,0.1); font-weight:bold;' : ''}">
+                <td>${index + 1}° ${isCurrent ? '👈 (ATUAL)' : ''}</td>
+                <td>${user.nick}</td>
+                <td>${user.points}</td>
+                <td>${userPending} missão(ões)</td>
+                <td>${isCurrent ? '🎮 Jogando' : '⏳ Aguardando'}</td>
+              </tr>
+            `;
+          }).join('');
+        } catch (error) {
+          console.error('Erro ao carregar fila:', error);
+        }
+      };
+
+      function startTimer(startTime) {
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(async () => {
+          const remaining = await DB.store.getRemainingTime();
+          const mins = Math.floor(remaining / 60);
+          const secs = remaining % 60;
+          document.getElementById('turn-timer').textContent = 
+            `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+          
+          if (remaining <= 0) {
+            clearInterval(timerInterval);
+            await DB.store.nextTurn();
+            loadQueue();
+          }
+        }, 1000);
+      }
+
+      window.skipTurn = async function() {
+        if (!confirm('Pular a vez do usuário atual?')) return;
+        try {
+          await DB.store.nextTurn();
+          loadQueue();
+          alert('Vez pulada com sucesso!');
+        } catch (error) {
+          console.error('Erro ao pular vez:', error);
+          alert('Erro ao pular vez');
+        }
+      };
+
+      // ==================== ATRIBUIR MISSÃO ====================
+      window.openAssignMissionModal = async function() {
+        try {
+          const users = await DB.users.getAll();
+          const missions = await DB.missions.getAll();
+          const userSelect = document.getElementById('assign-user');
+          const missionSelect = document.getElementById('assign-mission');
+
+          userSelect.innerHTML = '<option value="">Selecione um usuário</option>' + 
+            users.map(u => `<option value="${u.id}">${u.nick} (${u.points} pts)</option>`).join('');
+          missionSelect.innerHTML = '<option value="">Selecione uma missão</option>' + 
+            missions.map(m => `<option value="${m.id}" data-points="${m.points}">${m.name} - ${m.points} pts</option>`).join('');
+
+          document.getElementById('assign-mission-modal').classList.add('active');
+        } catch (error) {
+          console.error('Erro ao carregar dados:', error);
+          alert('Erro ao carregar dados');
+        }
+      };
+
+      window.closeAssignMissionModal = function() {
+        document.getElementById('assign-mission-modal').classList.remove('active');
+      };
+
+      window.assignMission = async function() {
+        const userId = document.getElementById('assign-user').value;
+        const missionSelect = document.getElementById('assign-mission');
+        const missionId = missionSelect.value;
+        const missionPoints = missionSelect.options[missionSelect.selectedIndex]?.dataset.points;
+
+        if (!userId || !missionId) {
+          alert('Selecione usuário e missão');
+          return;
+        }
+
+        try {
+          const result = await DB.missions.completeMission(userId, missionId, parseInt(missionPoints));
+          if (result.success) {
+            alert(`Missão atribuída! ${missionPoints} pontos adicionados.`);
+            closeAssignMissionModal();
+            loadStats();
+            loadUsers();
+          } else {
+            alert('Erro ao atribuir missão');
+          }
+        } catch (error) {
+          console.error('Erro ao atribuir missão:', error);
+          alert('Erro ao atribuir missão');
+        }
+      };
+
+      // ==================== CONFIGURAÇÕES ====================
+      window.loadStoreSettings = async function() {
+        try {
+          const status = await DB.store.getStatus();
+          document.getElementById('store-status').checked = status.is_open;
+          if (status.next_open_date) {
+            document.getElementById('next-opening').value = new Date(status.next_open_date).toISOString().slice(0,16);
+          }
+        } catch (error) {
+          console.error('Erro ao carregar configurações:', error);
+        }
+      };
+
+      window.toggleStoreStatus = function() {};
+
+      window.saveStoreSettings = async function() {
+        try {
+          const isOpen = document.getElementById('store-status').checked;
+          const nextOpening = document.getElementById('next-opening').value;
+          await DB.store.setStatus(isOpen, nextOpening || null);
+          alert('Configurações salvas com sucesso!');
+          loadQueue();
+        } catch (error) {
+          console.error('Erro ao salvar configurações:', error);
+          alert('Erro ao salvar configurações');
+        }
+      };
+
+      // ==================== PONTOS ====================
+      window.addPoints = async function() {
+        const nick = document.getElementById('points-nick').value.trim();
+        const amount = parseInt(document.getElementById('points-amount').value);
+        const reason = document.getElementById('points-reason').value.trim();
+
+        if (!nick || !amount) {
+          alert('Preencha nick e quantidade');
+          return;
+        }
+
+        try {
+          const user = await DB.users.getByNick(nick);
+          if (!user) { alert('Usuário não encontrado'); return; }
+          const newPoints = (user.points || 0) + amount;
+          await DB.users.update(user.id, { points: newPoints });
+          alert(`${amount} pontos adicionados para ${nick}\nMotivo: ${reason || 'N/A'}`);
+          document.getElementById('points-nick').value = '';
+          document.getElementById('points-amount').value = '';
+          document.getElementById('points-reason').value = '';
+          loadStats();
+          loadUsers();
+        } catch (error) {
+          console.error('Erro ao adicionar pontos:', error);
+          alert('Erro ao adicionar pontos');
+        }
+      };
+
+      window.removePoints = async function() {
+        const nick = document.getElementById('points-nick').value.trim();
+        const amount = parseInt(document.getElementById('points-amount').value);
+        const reason = document.getElementById('points-reason').value.trim();
+
+        if (!nick || !amount) {
+          alert('Preencha nick e quantidade');
+          return;
+        }
+
+        try {
+          const user = await DB.users.getByNick(nick);
+          if (!user) { alert('Usuário não encontrado'); return; }
+          const newPoints = Math.max(0, (user.points || 0) - amount);
+          await DB.users.update(user.id, { points: newPoints });
+          alert(`${amount} pontos removidos de ${nick}\nMotivo: ${reason || 'N/A'}`);
+          document.getElementById('points-nick').value = '';
+          document.getElementById('points-amount').value = '';
+          document.getElementById('points-reason').value = '';
+          loadStats();
+          loadUsers();
+        } catch (error) {
+          console.error('Erro ao remover pontos:', error);
+          alert('Erro ao remover pontos');
+        }
+      };
+
+      // ==================== INICIALIZAÇÃO ====================
+      await loadStats();
+      await loadMissions();
+      await loadRewards();
+      await loadUsers();
+      await loadQueue();
+      await loadStoreSettings();
+      await loadPendingMissions();
+
+      setInterval(async () => {
+        await loadStats();
+        await loadQueue();
+      }, 30000);
+    })();
+
+    let currentRejectId = null;
+
+    window.loadPendingMissions = async function() {
+      try {
+        const missions = await DB.missions.getPendingWithDetails();
+        console.log('Missões pendentes carregadas:', missions); // Debug
+        
+        const tbody = document.getElementById('pending-missions-body');
+        const table = document.getElementById('pending-missions-table');
+        const loading = document.getElementById('pending-missions-loading');
+        const badge = document.getElementById('pending-missions-count');
+        
+        if (badge) {
+          badge.textContent = `${missions.length} pendente${missions.length !== 1 ? 's' : ''}`;
+        }
+
+        if (!missions || missions.length === 0) {
+          loading.textContent = 'Nenhuma missão pendente';
+          loading.style.display = 'block';
+          table.style.display = 'none';
+          return;
+        }
+
+        loading.style.display = 'none';
+        table.style.display = 'table';
+        
+        tbody.innerHTML = missions.map(m => `
+          <tr>
+            <td><strong>${m.users?.nick || 'Desconhecido'}</strong></td>
+            <td>${m.missions?.name || 'Missão'}</td>
+            <td>${m.missions?.points || 0} pts</td>
+            <td>${new Date(m.completed_at).toLocaleString('pt-BR')}</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn btn-success" onclick="approveMission(${m.id})">Aprovar</button>
+                <button class="btn btn-danger" onclick="openRejectModal(${m.id})">Rejeitar</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } catch (error) {
+        console.error('Erro ao carregar missões pendentes:', error);
+        document.getElementById('pending-missions-loading').textContent = 'Erro ao carregar missões';
+      }
+    };
+
+    window.approveMission = async function(id) {
+      if (!confirm('Tem certeza que deseja APROVAR esta missão? Os pontos serão adicionados ao usuário.')) return;
+      
+      try {
+        const admin = SessionManager.getUser();
+        await DB.missions.approve(id, admin.id);
+        alert('Missão aprovada com sucesso!');
+        await loadPendingMissions();
+        await loadUsers();
+      } catch (error) {
+        console.error('Erro ao aprovar missão:', error);
+        alert('Erro ao aprovar missão: ' + error.message);
+      }
+    };
+
+    window.openRejectModal = function(id) {
+      currentRejectId = id;
+      document.getElementById('reject-reason').value = '';
+      document.getElementById('reject-modal').classList.add('active');
+    };
+
+    window.closeRejectModal = function() {
+      currentRejectId = null;
+      document.getElementById('reject-modal').classList.remove('active');
+    };
+
+    window.confirmReject = async function() {
+      const reason = document.getElementById('reject-reason').value.trim();
+      
+      if (!reason) {
+        alert('Digite um motivo para a rejeição');
+        return;
+      }
+      
+      try {
+        const admin = SessionManager.getUser();
+        await DB.missions.reject(currentRejectId, reason, admin.id);
+        closeRejectModal();
+        alert('Missão rejeitada com sucesso!');
+        await loadPendingMissions();
+      } catch (error) {
+        console.error('Erro ao rejeitar missão:', error);
+        alert('Erro ao rejeitar missão: ' + error.message);
+      }
+    };
+  </script>
+</body>
+</html>

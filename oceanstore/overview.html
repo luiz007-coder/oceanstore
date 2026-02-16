@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OceanStore - Dashboard</title>
+  <link rel="icon" type="image/png" href="https://i.imgur.com/U9aXSQB.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --cyan-primary: #75afca;
+      --cyan-dark: #6095af;
+      --cyan-light: #7dd3fc;
+      --cyan-muted: #f0f9ff;
+      --white: #ffffff;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-500: #64748b;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1e293b;
+      --gray-900: #0f172a;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    body {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--gray-50);
+      min-height: 100vh;
+      color: var(--gray-800);
+    }
+
+    #profile-header {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 1000;
+    }
+
+    .profile-trigger {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      background: rgba(96, 149, 175, 0.13);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      border: 2px solid var(--gray-200);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .profile-nick {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--gray-800);
+    }
+
+    .profile-points {
+      display: none;
+    }
+
+    .profile-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 240px;
+      background: rgba(96, 149, 175, 0.13);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      border: 2px solid var(--gray-200);
+      border-radius: 13px;
+      padding: 11px 0;
+      display: none;
+    }
+
+    .profile-dropdown.active {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .dropdown-item {
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dropdown-item .label {
+      font-size: 12px;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .dropdown-item .value {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .dropdown-divider {
+      height: 1px;
+      background: var(--gray-200);
+      margin: 8px 0;
+    }
+
+    .dropdown-link {
+      display: block;
+      padding: 10px 16px;
+      font-size: 14px;
+      color: var(--cyan-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .dropdown-link:hover {
+      background: var(--gray-50);
+    }
+
+    .logout-btn {
+      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      width: calc(100% - 32px);
+      margin: 8px 16px 0;
+      padding: 10px;
+      background: var(--danger);
+      color: var(--white);
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .logout-btn:hover {
+      background: #dc2626;
+    }
+
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 260px;
+      height: 100vh;
+      background: var(--white);
+      border-right: 2px solid var(--gray-200);
+      padding: 22px 0;
+    }
+
+    .sidebar-logo {
+      padding: 0 18px 18px;
+      border-bottom: 2px solid var(--gray-200);
+      margin-bottom: 16px;
+    }
+
+    .sidebar-logo a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .sidebar-logo-icon {
+      width: 44px !important;
+      height: 44px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    .sidebar-logo-icon img {
+      width: 46px !important;
+      height: 46px !important;
+      max-width: none !important;
+      max-height: none !important;
+      object-fit: contain !important;
+      display: block !important;
+      position: relative !important;
+      transform: scale(1.1);
+    }
+
+    .sidebar-logo-text {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--gray-800);
+    }
+
+    .nav-menu {
+      list-style: none;
+      padding: 0 12px;
+    }
+
+    .nav-item {
+      margin-bottom: 4px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      text-decoration: none;
+      color: var(--gray-600);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .nav-link:hover {
+      background: var(--gray-50);
+      color: var(--gray-800);
+    }
+
+    .nav-link.active {
+      background: var(--cyan-muted);
+      color: var(--cyan-primary);
+    }
+
+    .nav-link svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .main-content {
+      margin-left: 260px;
+      padding: 32px;
+      min-height: 100vh;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+    }
+
+    .page-header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--gray-800);
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      font-size: 15px;
+      color: var(--gray-500);
+    }
+
+    .next-opening {
+      background: linear-gradient(135deg, var(--cyan-muted), var(--white));
+      border: 2px solid var(--cyan-light);
+      border-radius: 16px;
+      padding: 24px 32px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .next-opening-info h3 {
+      font-size: 14px;
+      color: var(--cyan-dark);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .next-opening-info .date {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--cyan-primary);
+    }
+
+    .next-opening-countdown {
+      text-align: right;
+    }
+
+    .next-opening-countdown .label {
+      font-size: 12px;
+      color: var(--cyan-dark);
+      text-transform: uppercase;
+    }
+
+    .next-opening-countdown .time {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--cyan-primary);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border: 2px solid var(--gray-200);
+      border-radius: 18px;
+      padding: 20px;
+    }
+
+    .stat-card .label {
+      font-size: 12px;
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .stat-card .value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--gray-800);
+    }
+
+    .stat-card.primary {
+      background: linear-gradient(135deg, var(--cyan-primary), var(--cyan-dark));
+      border-color: var(--cyan-primary);
+    }
+
+    .stat-card.primary .label,
+    .stat-card.primary .value {
+      color: var(--white);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .panel {
+      background: var(--white);
+      border: 2px solid var(--gray-200);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 20px 24px;
+      border-bottom: 2px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .panel-link {
+      font-size: 13px;
+      color: var(--cyan-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .panel-link:hover {
+      text-decoration: underline;
+    }
+
+    .ranking-list {
+      list-style: none;
+    }
+
+    .ranking-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--gray-100);
+      transition: background 0.2s ease;
+    }
+
+    .ranking-item:hover {
+      background: var(--gray-50);
+    }
+
+    .ranking-item:last-child {
+      border-bottom: none;
+    }
+
+    .ranking-position {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      background: var(--gray-100);
+      color: var(--gray-600);
+    }
+
+    .ranking-position.top {
+      background: linear-gradient(135deg, var(--cyan-primary), var(--cyan-dark));
+      color: var(--white);
+    }
+
+    .ranking-info {
+      flex: 1;
+    }
+
+    .ranking-nick {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .ranking-points {
+      font-size: 13px;
+      color: var(--gray-500);
+    }
+
+    .redemption-list {
+      list-style: none;
+    }
+
+    .redemption-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .redemption-item:last-child {
+      border-bottom: none;
+    }
+
+    .redemption-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .redemption-avatar {
+      width: 40px;
+      height: 40px;
+      background: var(--cyan-muted);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--cyan-primary);
+    }
+
+    .redemption-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .redemption-nick {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .redemption-reward {
+      font-size: 12px;
+      color: var(--gray-500);
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-pending {
+      background: #fef3c7;
+      color: #d97706;
+    }
+
+    .status-approved {
+      background: #d1fae5;
+      color: #059669;
+    }
+
+    .status-rejected {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .queue-message {
+      background: var(--cyan-muted);
+      border: 1px solid var(--cyan-light);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .queue-message svg {
+      width: 24px;
+      height: 24px;
+      color: var(--cyan-primary);
+    }
+
+    .queue-message p {
+      font-size: 14px;
+      color: var(--gray-700);
+      font-weight: 500;
+    }
+
+    .queue-message strong {
+      color: var(--cyan-primary);
+      font-size: 16px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--gray-500);
+      font-size: 14px;
+    }
+
+    @media (max-width: 1200px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        border-right: none;
+        border-bottom: 1px solid var(--gray-200);
+      }
+
+      .main-content {
+        margin-left: 0;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      #profile-header {
+        position: relative;
+        top: auto;
+        right: auto;
+        padding: 16px;
+      }
+
+      .next-opening {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+      }
+
+      .next-opening-countdown {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <a href="overview.html">
+        <div class="sidebar-logo-icon">
+          <img src="https://i.imgur.com/U9aXSQB.png" alt="OceanStore" style="width: 22px; height: 22px;">
+        </div>
+        <span class="sidebar-logo-text">OceanStore</span>
+      </a>
+    </div>
+    <nav>
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <a href="overview.html" class="nav-link active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+              <path d="M9 22V12h6v10"/>
+            </svg>
+            Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="market.html" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+              <path d="M3 6h18M16 10a4 4 0 01-8 0"/>
+            </svg>
+            Loja
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="redemption.html" class="nav-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 8v13M3 8h18M7 8V5a2 2 0 012-2h6a2 2 0 012 2v3"/>
+            </svg>
+            Resgates
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>Dashboard</h1>
+      <p>Bem-vindo de volta! Acompanhe seu progresso e as novidades.</p>
+    </div>
+
+    <div class="next-opening" id="store-status-container">
+      <div class="next-opening-info">
+        <h3 id="store-status-label">Status da Loja</h3>
+        <div class="date" id="store-status">Carregando...</div>
+      </div>
+      <div class="next-opening-countdown">
+        <div class="label" id="countdown-label">Próxima Abertura</div>
+        <div class="time" id="countdown">--:--:--</div>
+      </div>
+    </div>
+
+    <div class="queue-message" id="queue-message" style="display: none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 6v6l4 2"/>
+      </svg>
+      <p id="queue-text">Sua posição é: <strong>#0</strong>. Aguarde sua vez!</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card primary">
+        <div class="label">Seus Pontos</div>
+        <div class="value" id="user-points">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total de Resgates</div>
+        <div class="value" id="total-redemptions">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Sua Posição</div>
+        <div class="value" id="user-rank">#0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Recompensas</div>
+        <div class="value" id="total-rewards">0</div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Ranking</h2>
+          <a href="#" class="panel-link">Ver todos</a>
+        </div>
+        <div class="panel-body">
+          <div class="loading" id="ranking-loading">Carregando ranking...</div>
+          <ul class="ranking-list" id="ranking-list" style="display: none;"></ul>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Últimos resgates</h2>
+          <a href="redemption.html" class="panel-link">Ver todos</a>
+        </div>
+        <div class="panel-body">
+          <div class="loading" id="redemptions-loading">Carregando resgates...</div>
+          <ul class="redemption-list" id="redemption-list" style="display: none;"></ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/session.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/profile-header.js"></script>
+  <script>
+    (async function() {
+      if (!(await Auth.checkAuth())) return;
+      
+      ProfileHeader.init();
+
+      async function loadDashboard() {
+        try {
+          const user = SessionManager.getUser();
+
+          const dbUser = await DB.users.getByNick(user.nick);
+          if (dbUser && dbUser.points !== user.points) {
+            user.points = dbUser.points;
+            SessionManager.setUser(user);
+            ProfileHeader.update();
+          }
+
+          document.getElementById('user-points').textContent = user.points;
+          
+          const userRedemptions = await DB.redemptions.getByUser(user.id);
+          document.getElementById('total-redemptions').textContent = userRedemptions.length;
+          
+          const userPosition = await DB.rankings.getUserPosition(user.id);
+          document.getElementById('user-rank').textContent = `#${userPosition}`;
+          
+          const allRewards = await DB.rewards.getAll();
+          document.getElementById('total-rewards').textContent = allRewards.length;
+
+          const ranking = await DB.rankings.getTop(5);
+          const rankingList = document.getElementById('ranking-list');
+          const rankingLoading = document.getElementById('ranking-loading');
+          
+          if (ranking.length > 0) {
+            rankingLoading.style.display = 'none';
+            rankingList.style.display = 'block';
+            rankingList.innerHTML = ranking.map((item, index) => `
+              <li class="ranking-item">
+                <div class="ranking-position ${index < 3 ? 'top' : ''}">${index + 1}</div>
+                <div class="ranking-info">
+                  <div class="ranking-nick">${item.nick}</div>
+                  <div class="ranking-points">${item.points} pontos</div>
+                </div>
+              </li>
+            `).join('');
+          } else {
+            rankingLoading.textContent = 'Nenhum usuário encontrado';
+          }
+
+          const allRedemptions = await DB.redemptions.getAll();
+          const redemptionList = document.getElementById('redemption-list');
+          const redemptionsLoading = document.getElementById('redemptions-loading');
+          
+          if (allRedemptions.length > 0) {
+            redemptionsLoading.style.display = 'none';
+            redemptionList.style.display = 'block';
+            redemptionList.innerHTML = allRedemptions.slice(0, 5).map(item => `
+              <li class="redemption-item">
+                <div class="redemption-info">
+                  <div class="redemption-avatar">${item.users?.nick?.charAt(0) || '?'}</div>
+                  <div class="redemption-details">
+                    <div class="redemption-nick">${item.users?.nick || 'Desconhecido'}</div>
+                    <div class="redemption-reward">${item.reward_name || 'Recompensa'}</div>
+                  </div>
+                </div>
+                <span class="status-badge status-${item.status}">${item.status}</span>
+              </li>
+            `).join('');
+          } else {
+            redemptionsLoading.textContent = 'Nenhum resgate encontrado';
+          }
+
+        } catch (error) {
+          console.error('Erro ao carregar dashboard:', error);
+          document.querySelectorAll('.loading').forEach(el => {
+            el.textContent = 'Erro ao carregar dados';
+          });
+        }
+      }
+
+      let countdownInterval = null;
+      let targetDate = null;
+
+      async function updateStoreStatus() {
+        try {
+          const status = await DB.store.getStatus();
+          const storeStatusEl = document.getElementById('store-status');
+          const queueMessage = document.getElementById('queue-message');
+          const queueText = document.getElementById('queue-text');
+          const countdownEl = document.getElementById('countdown');
+          const countdownLabel = document.getElementById('countdown-label');
+          
+          if (status.is_open) {
+            storeStatusEl.textContent = '🟢 Loja Aberta';
+            storeStatusEl.style.color = '#10b981';
+            queueMessage.style.display = 'none';
+            countdownLabel.textContent = 'Status';
+            countdownEl.textContent = 'Aberto agora';
+
+            if (countdownInterval) {
+              clearInterval(countdownInterval);
+              countdownInterval = null;
+            }
+          } else {
+            storeStatusEl.textContent = '🔴 Loja Fechada';
+            storeStatusEl.style.color = '#ef4444';
+            
+            const pendingCount = await DB.redemptions.getPendingCount();
+            const user = SessionManager.getUser();
+            
+            if (pendingCount > 0 && user) {
+              const userPosition = await DB.rankings.getUserPosition(user.id);
+              queueText.innerHTML = `Sua posição é: <strong>#${userPosition}</strong>. Aguarde sua vez! (${pendingCount} na fila)`;
+              queueMessage.style.display = 'flex';
+            }
+
+            if (status.next_open_date) {
+              targetDate = new Date(status.next_open_date);
+              countdownLabel.textContent = 'Próxima Abertura';
+              startRealTimeCountdown();
+            } else {
+              countdownEl.textContent = 'Não agendada';
+            }
+          }
+        } catch (error) {
+          console.error('Erro ao atualizar status da loja:', error);
+        }
+      }
+
+      function startRealTimeCountdown() {
+        if (countdownInterval) {
+          clearInterval(countdownInterval);
+        }
+
+        function updateTimer() {
+          const now = new Date().getTime();
+          const target = targetDate.getTime();
+          const diff = target - now;
+
+          if (diff <= 0) {
+            document.getElementById('countdown').textContent = '00:00:00';
+            updateStoreStatus();
+            return;
+          }
+
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+          let timeString;
+          if (days > 0) {
+            timeString = `${days}d ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+          } else {
+            timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+          }
+          
+          document.getElementById('countdown').textContent = timeString;
+        }
+
+        updateTimer();
+
+        countdownInterval = setInterval(updateTimer, 1000);
+      }
+
+      window.addEventListener('beforeunload', function() {
+        if (countdownInterval) {
+          clearInterval(countdownInterval);
+        }
+      });
+
+      await loadDashboard();
+      await updateStoreStatus();
+
+      setInterval(updateStoreStatus, 30000);
+      setInterval(loadDashboard, 30000);
+    })();
+  </script>
+</body>
+</html>
