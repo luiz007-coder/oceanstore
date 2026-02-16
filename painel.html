@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <style>
     * {
       margin: 0;
@@ -37,10 +38,10 @@
     }
 
     body {
-      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Poppins', sans-serif;
       background: var(--gray-50);
       min-height: 100vh;
-      color: var(--gRay-800);
+      color: var(--gray-800);
     }
 
     #profile-header {
@@ -53,38 +54,45 @@
     .profile-trigger {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 9px 14px;
-      background: rgba(96, 149, 175, 0.13);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
+      gap: 8px;
+      padding: 6px 12px 6px 6px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border: 2px solid var(--gray-200);
-      border-radius: 12px;
+      border-radius: 15px;
       cursor: pointer;
       transition: all 0.2s ease;
     }
 
-    .profile-nick {
-      font-weight: 600;
-      font-size: 14px;
-      color: var(--gray-800);
+    .profile-avatar {
+      width: 34px;
+      height: auto;
     }
 
-    .profile-points {
-      display: none;
+    .profile-nick {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--gray-800);
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .profile-trigger svg {
+      color: var(--gray-500);
     }
 
     .profile-dropdown {
       position: absolute;
       top: calc(100% + 8px);
       right: 0;
-      width: 240px;
-      background: rgba(96, 149, 175, 0.13);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
+      width: 260px;
+      background: white;
       border: 2px solid var(--gray-200);
-      border-radius: 13px;
-      padding: 11px 0;
+      border-radius: 16px;
+      padding: 8px 0;
       display: none;
     }
 
@@ -93,24 +101,63 @@
       animation: fadeIn 0.2s ease;
     }
 
-    .dropdown-item {
-      padding: 10px 16px;
+    .dropdown-user {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--gray-100);
     }
 
-    .dropdown-item .label {
-      font-size: 12px;
-      color: var(--gray-500);
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
+    .dropdown-avatar {
+      width: 40px;
+      height: 42px;
+      border-radius: 9px;
+      border: 2px solid var(--cyan-primary);
     }
 
-    .dropdown-item .value {
-      font-size: 14px;
+    .dropdown-user-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dropdown-user-nick {
       font-weight: 600;
+      font-size: 15px;
       color: var(--gray-800);
+      margin-bottom: 2px;
+    }
+
+    .dropdown-user-points {
+      font-size: 12px;
+      color: var(--cyan-primary);
+      font-weight: 500;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      font-size: 14px;
+      color: var(--gray-700);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      width: 100%;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .dropdown-item:hover {
+      background: var(--gray-50);
+      color: var(--cyan-primary);
+    }
+
+    .dropdown-item svg {
+      color: currentColor;
+      opacity: 0.8;
     }
 
     .dropdown-divider {
@@ -119,36 +166,95 @@
       margin: 8px 0;
     }
 
-    .dropdown-link {
-      display: block;
-      padding: 10px 16px;
-      font-size: 14px;
-      color: var(--cyan-primary);
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .dropdown-link:hover {
-      background: var(--gray-50);
-    }
-
     .logout-btn {
-      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      width: calc(100% - 32px);
-      margin: 8px 16px 0;
-      padding: 10px;
-      background: var(--danger);
-      color: var(--white);
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s ease;
+      color: var(--danger);
     }
 
     .logout-btn:hover {
-      background: #dc2626;
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      min-width: 300px;
+      max-width: 400px;
+      background: white;
+      border: 2px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+      animation: slideUp 0.3s ease;
+      z-index: 9999;
+    }
+
+    .toast.toast-success {
+      border-color: var(--success);
+      background: #d1fae5;
+    }
+
+    .toast.toast-error {
+      border-color: var(--danger);
+      background: #fee2e2;
+    }
+
+    .toast.toast-warning {
+      border-color: var(--warning);
+      background: #fef3c7;
+    }
+
+    .toast svg {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .toast span {
+      font-size: 14px;
+      color: var(--gray-800);
+      flex: 1;
+    }
+
+    .toast-hide {
+      animation: slideDown 0.3s ease forwards;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(20px);
+      }
     }
 
     .sidebar {
@@ -307,7 +413,7 @@
     }
 
     .tab-btn {
-      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Poppins', sans-serif;
       padding: 10px 20px;
       font-size: 14px;
       font-weight: 500;
@@ -339,7 +445,6 @@
     }
 
     .panel {
-      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--white);
       border: 2px solid var(--gray-200);
       border-radius: 16px;
@@ -418,15 +523,57 @@
       gap: 8px;
     }
 
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--gray-600);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn:hover {
+      background: var(--gray-100);
+      color: var(--cyan-primary);
+    }
+
+    .icon-btn.danger:hover {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .icon-btn.success:hover {
+      background: #d1fae5;
+      color: #059669;
+    }
+
+    .icon-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
     .btn {
-      font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      padding: 8px 16px;
+      font-family: 'Poppins', sans-serif;
+      padding: 8px 13px;
       font-size: 12px;
       font-weight: 600;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan-primary), var(--cyan-dark));
+      color: var(--white);
     }
 
     .btn-success {
@@ -445,15 +592,6 @@
 
     .btn-danger:hover {
       background: #dc2626;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--cyan-primary), var(--cyan-dark));
-      color: var(--white);
-    }
-
-    .btn-primary:hover {
-      background: var(--cyan-dark);
     }
 
     .btn-secondary {
@@ -503,6 +641,7 @@
       background: var(--white);
       color: var(--gray-800);
       transition: all 0.2s ease;
+      font-family: 'Poppins', sans-serif;
     }
 
     input:focus,
@@ -510,15 +649,17 @@
     textarea:focus {
       outline: none;
       border-color: var(--cyan-primary);
+      box-shadow: 0 0 0 3px var(--cyan-muted);
     }
 
     select {
       cursor: pointer;
       appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 256 256'%3E%3Cpath fill='%236b7280' d='M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z'%3E%3C/path%3E%3C/svg%3E");
       background-repeat: no-repeat;
-      background-position: right 12px center;
-      padding-right: 40px;
+      background-position: right 14px center;
+      background-size: 16px;
+      padding-right: 44px;
     }
 
     textarea {
@@ -657,9 +798,27 @@
       color: var(--cyan-dark);
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    .proof-thumb {
+      max-width: 40px;
+      max-height: 40px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .proof-thumb:hover {
+      transform: scale(2);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .banned-badge {
+      background: #fee2e2;
+      color: #dc2626;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-left: 8px;
     }
 
     @media (max-width: 1024px) {
@@ -716,10 +875,47 @@
     </div>
     <nav>
       <ul class="nav-menu">
-        <li class="nav-item"><a href="overview.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>Dashboard</a></li>
-        <li class="nav-item"><a href="market.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 01-8 0"/></svg>Loja</a></li>
-        <li class="nav-item"><a href="redemption.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v13M3 8h18M7 8V5a2 2 0 012-2h6a2 2 0 012 2v3"/></svg>Resgates</a></li>
-        <li class="nav-item"><a href="painel.html" class="nav-link active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>Admin</a></li>
+        <li class="nav-item">
+          <a href="overview.html" class="nav-link">
+            <svg viewBox="0 0 256 256" fill="currentColor">
+              <path d="M218.83,103.77l-80-75.48a1,1,0,0,1-.11-.11,17,17,0,0,0-23.44,0l-.11.11L37.17,103.77A16,16,0,0,0,32,115.55V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V160h32v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V115.55A16,16,0,0,0,218.83,103.77Z"></path>
+            </svg>
+            Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="market.html" class="nav-link">
+            <svg viewBox="0 0 256 256" fill="currentColor">
+              <path d="M232,96a8,8,0,0,0-8-8H32a8,8,0,0,0-8,8V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16Zm-16,96H40V104H216Zm-8-40a12,12,0,1,1-12-12A12,12,0,0,1,208,152ZM64,48H192a8,8,0,0,1,0,16H64A8,8,0,0,1,64,48Z"></path>
+            </svg>
+            Loja
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="redemption.html" class="nav-link">
+            <svg viewBox="0 0 256 256" fill="currentColor">
+              <path d="M216,72H178.83L200.3,35.5a8,8,0,0,0-13.7-8.27L164.41,64H91.59L69.4,27.23a8,8,0,1,0-13.7,8.27L77.17,72H40A16,16,0,0,0,24,88V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V88A16,16,0,0,0,216,72Z"></path>
+            </svg>
+            Resgates
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <svg viewBox="0 0 256 256" fill="currentColor">
+              <path d="M168,76a12,12,0,1,1-12-12A12,12,0,0,1,168,76Zm-12,52a12,12,0,1,0,12,12A12,12,0,0,0,156,128Zm0,64a12,12,0,1,0,12,12A12,12,0,0,0,156,192ZM128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Z"></path>
+            </svg>
+            Fortune Fish
+            <span style="margin-left: auto; font-size: 10px; color: var(--gray-400);">Em breve</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="painel.html" class="nav-link active">
+            <svg viewBox="0 0 256 256" fill="currentColor">
+              <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm48-88a8,8,0,0,1-8,8H136v32a8,8,0,0,1-16,0V136H88a8,8,0,0,1,0-16h32V88a8,8,0,0,1,16,0v32h32A8,8,0,0,1,176,128Z"></path>
+            </svg>
+            Admin
+          </a>
+        </li>
       </ul>
     </nav>
   </aside>
@@ -731,15 +927,32 @@
         <p>Gerencie missões, recompensas, usuários e fila de resgate.</p>
       </div>
       <div class="header-actions">
-        <button class="btn btn-primary" onclick="openAssignMissionModal()">Atribuir missão</button>
+        <button class="btn btn-primary" onclick="openAssignMissionModal()">
+          <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor">
+            <path d="M216,64H176a48,48,0,0,0-96,0H40A16,16,0,0,0,24,80V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V80A16,16,0,0,0,216,64ZM128,32a32,32,0,0,1,32,32H96A32,32,0,0,1,128,32Z"></path>
+          </svg>
+          Atribuir missão
+        </button>
       </div>
     </div>
 
     <div class="stats-grid">
-      <div class="stat-card"><div class="label">Total de usuários</div><div class="value" id="total-users">0</div></div>
-      <div class="stat-card"><div class="label">Missões hoje</div><div class="value" id="missions-today">0</div></div>
-      <div class="stat-card"><div class="label">Pontos distribuídos</div><div class="value" id="total-points">0</div></div>
-      <div class="stat-card"><div class="label">Resgates pendentes</div><div class="value" id="pending-count">0</div></div>
+      <div class="stat-card">
+        <div class="label">Total de usuários</div>
+        <div class="value" id="total-users">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Missões hoje</div>
+        <div class="value" id="missions-today">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Pontos distribuídos</div>
+        <div class="value" id="total-points">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Resgates pendentes</div>
+        <div class="value" id="pending-count">0</div>
+      </div>
     </div>
 
     <div class="admin-tabs">
@@ -749,14 +962,18 @@
       <button class="tab-btn" onclick="showTab('users')">Usuários</button>
       <button class="tab-btn" onclick="showTab('queue')">Fila</button>
       <button class="tab-btn" onclick="showTab('store')">Configurações</button>
-      <button class="tab-btn" onclick="showTab('points')">Gerenciar pontos</button>
     </div>
 
     <div id="tab-missions" class="tab-content active">
       <div class="panel">
         <div class="panel-header">
           <h2 class="panel-title">Gerenciar missões</h2>
-          <button class="btn btn-primary" onclick="openMissionModal()">Nova missão</button>
+          <button class="btn btn-primary" onclick="openMissionModal()">
+            <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor">
+              <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm48-88a8,8,0,0,1-8,8H136v32a8,8,0,0,1-16,0V136H88a8,8,0,0,1,0-16h32V88a8,8,0,0,1,16,0v32h32A8,8,0,0,1,176,128Z"></path>
+            </svg>
+            NOVA MISSÃO
+          </button>
         </div>
         <div class="loading" id="missions-loading">Carregando missões...</div>
         <table class="data-table" id="missions-table" style="display: none;">
@@ -786,6 +1003,7 @@
               <th>Usuário</th>
               <th>Missão</th>
               <th>Pontos</th>
+              <th>Comprovante</th>
               <th>Data</th>
               <th>Ações</th>
             </tr>
@@ -799,7 +1017,12 @@
       <div class="panel">
         <div class="panel-header">
           <h2 class="panel-title">Gerenciar recompensas</h2>
-          <button class="btn btn-primary" onclick="openRewardModal()">Nova recompensa</button>
+          <button class="btn btn-primary" onclick="openRewardModal()">
+            <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor">
+              <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm48-88a8,8,0,0,1-8,8H136v32a8,8,0,0,1-16,0V136H88a8,8,0,0,1,0-16h32V88a8,8,0,0,1,16,0v32h32A8,8,0,0,1,176,128Z"></path>
+            </svg>
+            Nova recompensa
+          </button>
         </div>
         <div class="loading" id="rewards-loading">Carregando recompensas...</div>
         <table class="data-table" id="rewards-table" style="display: none;">
@@ -845,7 +1068,12 @@
           <h2 class="panel-title">Controle de fila</h2>
           <div>
             <span id="current-turn-info"></span>
-            <button class="btn btn-primary" onclick="skipTurn()" id="skip-turn-btn">Pular vez</button>
+            <button class="btn btn-primary" onclick="skipTurn()" id="skip-turn-btn">
+              <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor">
+                <path d="M232,128a104,104,0,1,1-32.26-74.27,8,8,0,1,1-11.48,11.14A88,88,0,1,0,208,183.67V152a8,8,0,0,1,16,0v48a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h31.2A103.94,103.94,0,0,1,232,128Z"></path>
+              </svg>
+              Pular vez
+            </button>
           </div>
         </div>
         <div id="current-turn-box" class="current-turn-box" style="display: none;">
@@ -865,7 +1093,7 @@
               <th>Posição</th>
               <th>Nick</th>
               <th>Pontos</th>
-              <th>Missões pendentes</th>
+              <th>Resgates pendentes</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -892,33 +1120,15 @@
             <input type="datetime-local" id="next-opening">
           </div>
           <div class="form-group full-width">
-            <button class="btn btn-primary" onclick="saveStoreSettings()">Salvar configurações</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="tab-points" class="tab-content">
-      <div class="panel">
-        <div class="panel-header">
-          <h2 class="panel-title">Gerenciar pontos</h2>
-        </div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="points-nick">Nick do usuário</label>
-            <input type="text" id="points-nick" placeholder="Digite o nick">
-          </div>
-          <div class="form-group">
-            <label for="points-amount">Quantidade</label>
-            <input type="number" id="points-amount" placeholder="0" min="1">
-          </div>
-          <div class="form-group full-width">
-            <label for="points-reason">Motivo</label>
-            <textarea id="points-reason" placeholder="Motivo da alteração"></textarea>
-          </div>
-          <div class="form-group full-width" style="display: flex; gap: 10px;">
-            <button class="btn btn-primary" onclick="addPoints()" style="flex: 1;">Adicionar pontos</button>
-            <button class="btn btn-danger" onclick="removePoints()" style="flex: 1;">Remover pontos</button>
+            <p style="color: var(--gray-500); font-size: 13px; margin-bottom: 12px;">
+              ℹ️ A loja abre automaticamente todo dia 5 do mês e fecha após 5 dias (dia 10).
+            </p>
+            <button class="btn btn-primary" onclick="saveStoreSettings()">
+              <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor">
+                <path d="M216,96v96a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V64A16,16,0,0,1,56,48h96a8,8,0,0,1,5.66,2.34l56,56A8,8,0,0,1,216,112Zm-48,28a12,12,0,1,0-12,12A12,12,0,0,0,168,124Z"></path>
+              </svg>
+              Salvar configurações
+            </button>
           </div>
         </div>
       </div>
@@ -1010,10 +1220,34 @@
     </div>
   </div>
 
+  <div class="modal" id="edit-user-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Editar usuário</h2>
+      </div>
+      <div class="form-group">
+        <label for="edit-user-nick">Nick</label>
+        <input type="text" id="edit-user-nick" disabled>
+      </div>
+      <div class="form-group">
+        <label for="edit-user-points">Pontos</label>
+        <input type="number" id="edit-user-points" min="0">
+      </div>
+      <div class="form-group">
+        <label for="edit-user-reason">Motivo da alteração</label>
+        <textarea id="edit-user-reason" placeholder="Digite o motivo..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeEditUserModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveUserEdit()">Salvar alterações</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal" id="reject-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Rejeitar resgate</h2>
+        <h2>Rejeitar missão</h2>
       </div>
       <div class="form-group">
         <label for="reject-reason">Motivo da rejeição</label>
@@ -1022,6 +1256,19 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeRejectModal()">Cancelar</button>
         <button class="btn btn-danger" onclick="confirmReject()">Rejeitar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="confirm-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="confirm-title">Confirmar</h2>
+      </div>
+      <p id="confirm-message" style="margin-bottom: 24px;"></p>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeConfirmModal()">Cancelar</button>
+        <button class="btn btn-primary" id="confirm-action">Confirmar</button>
       </div>
     </div>
   </div>
@@ -1037,6 +1284,8 @@
 
       let editingMissionId = null;
       let editingRewardId = null;
+      let editingUserId = null;
+      let currentRejectId = null;
       let timerInterval = null;
 
       window.showTab = function(tab) {
@@ -1046,28 +1295,40 @@
         document.getElementById(`tab-${tab}`).classList.add('active');
       };
 
-      // ==================== STATS ====================
       async function loadStats() {
         try {
           const users = await DB.users.getAll();
-          const missions = await DB.user_missions?.getToday() || [];
-          const totalPoints = users.reduce((sum, u) => sum + (u.points || 0), 0);
-          const pending = await DB.redemptions.getPending();
-          
           document.getElementById('total-users').textContent = users.length;
-          document.getElementById('missions-today').textContent = missions.length;
-          document.getElementById('total-points').textContent = totalPoints.toLocaleString();
+          
+          const pending = await DB.redemptions.getPending();
           document.getElementById('pending-count').textContent = pending.length;
+          
+          const totalPoints = users.reduce((sum, u) => sum + (u.points || 0), 0);
+          document.getElementById('total-points').textContent = totalPoints.toLocaleString();
+          
+          try {
+            const missionsToday = await DB.missions.getTodayCount();
+            document.getElementById('missions-today').textContent = missionsToday;
+          } catch (error) {
+            console.error('Erro ao carregar missões hoje:', error);
+            document.getElementById('missions-today').textContent = '0';
+          }
         } catch (error) {
           console.error('Erro ao carregar stats:', error);
         }
       }
 
-      // ==================== MISSÕES ====================
       window.openMissionModal = function(editId = null) {
         editingMissionId = editId;
         document.getElementById('mission-modal-title').textContent = editId ? 'Editar Missão' : 'Nova Missão';
-        if (!editId) {
+        if (editId) {
+          const mission = missions.find(m => m.id === editId);
+          if (mission) {
+            document.getElementById('mission-name').value = mission.name;
+            document.getElementById('mission-description').value = mission.description || '';
+            document.getElementById('mission-points').value = mission.points;
+          }
+        } else {
           document.getElementById('mission-name').value = '';
           document.getElementById('mission-description').value = '';
           document.getElementById('mission-points').value = '';
@@ -1086,7 +1347,7 @@
         const points = parseInt(document.getElementById('mission-points').value);
 
         if (!name || !points) {
-          alert('Preencha nome e pontos');
+          Toast.show('Preencha nome e pontos', 'error');
           return;
         }
 
@@ -1094,20 +1355,23 @@
           const missionData = { name, description: description || null, points };
           if (editingMissionId) {
             await DB.missions.update(editingMissionId, missionData);
+            Toast.show('Missão atualizada com sucesso!', 'success');
           } else {
             await DB.missions.create(missionData);
+            Toast.show('Missão criada com sucesso!', 'success');
           }
           await loadMissions();
           closeMissionModal();
         } catch (error) {
           console.error('Erro ao salvar missão:', error);
-          alert('Erro ao salvar missão');
+          Toast.show('Erro ao salvar missão', 'error');
         }
       };
 
+      let missions = [];
       window.loadMissions = async function() {
         try {
-          const missions = await DB.missions.getAll();
+          missions = await DB.missions.getAll();
           const tbody = document.getElementById('missions-body');
           const table = document.getElementById('missions-table');
           const loading = document.getElementById('missions-loading');
@@ -1126,8 +1390,16 @@
               <td>${m.points}</td>
               <td>
                 <div class="action-btns">
-                  <button class="btn btn-primary" onclick="openMissionModal(${m.id})">Editar</button>
-                  <button class="btn btn-danger" onclick="deleteMission(${m.id})">Excluir</button>
+                  <button class="icon-btn" onclick="openMissionModal(${m.id})" title="Editar">
+                    <svg viewBox="0 0 256 256" fill="currentColor">
+                      <path d="M227.31,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"></path>
+                    </svg>
+                  </button>
+                  <button class="icon-btn danger" onclick="deleteMission(${m.id})" title="Excluir">
+                    <svg viewBox="0 0 256 256" fill="currentColor">
+                      <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
+                    </svg>
+                  </button>
                 </div>
               </td>
             </tr>
@@ -1138,21 +1410,157 @@
         }
       };
 
+      window.showConfirm = function(title, message, onConfirm) {
+        document.getElementById('confirm-title').textContent = title;
+        document.getElementById('confirm-message').textContent = message;
+        document.getElementById('confirm-modal').classList.add('active');
+        
+        const confirmBtn = document.getElementById('confirm-action');
+        const newBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+        
+        newBtn.onclick = async function() {
+          await onConfirm();
+          document.getElementById('confirm-modal').classList.remove('active');
+        };
+      };
+
+      window.closeConfirmModal = function() {
+        document.getElementById('confirm-modal').classList.remove('active');
+      };
+
       window.deleteMission = async function(id) {
-        if (!confirm('Tem certeza que deseja excluir esta missão?')) return;
+        showConfirm('Excluir missão', 'Tem certeza que deseja excluir esta missão?', async () => {
+          try {
+            await DB.missions.delete(id);
+            Toast.show('Missão excluída com sucesso!', 'success');
+            await loadMissions();
+          } catch (error) {
+            console.error('Erro ao excluir missão:', error);
+            Toast.show('Erro ao excluir missão', 'error');
+          }
+        });
+      };
+
+      window.loadPendingMissions = async function() {
         try {
-          await DB.missions.delete(id);
-          await loadMissions();
+          const missions = await DB.missions.getPendingWithDetails();
+          
+          const tbody = document.getElementById('pending-missions-body');
+          const table = document.getElementById('pending-missions-table');
+          const loading = document.getElementById('pending-missions-loading');
+          const badge = document.getElementById('pending-missions-count');
+          
+          if (badge) {
+            badge.textContent = `${missions.length} pendente${missions.length !== 1 ? 's' : ''}`;
+          }
+
+          if (!missions || missions.length === 0) {
+            loading.textContent = 'Nenhuma missão pendente';
+            loading.style.display = 'block';
+            table.style.display = 'none';
+            return;
+          }
+
+          loading.style.display = 'none';
+          table.style.display = 'table';
+          
+          tbody.innerHTML = missions.map(m => `
+            <tr>
+              <td><strong>${m.users?.nick || 'Desconhecido'}</strong></td>
+              <td>${m.missions?.name || 'Missão'}</td>
+              <td>${m.missions?.points || 0} pts</td>
+              <td>
+                ${m.proof_url ? `
+                  <a href="${m.proof_url}" target="_blank" class="proof-link" title="Ver comprovante">
+                    <svg width="24" height="24" viewBox="0 0 256 256" fill="var(--cyan-primary)">
+                      <path d="M216,104v96a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V104a16,16,0,0,1,16-16H80a8,8,0,0,1,0,16H56v96H200V104H176a8,8,0,0,1,0-16h24A16,16,0,0,1,216,104ZM93.66,69.66,120,43.31V128a8,8,0,0,0,16,0V43.31l26.34,26.35a8,8,0,0,0,11.32-11.32l-40-40a8,8,0,0,0-11.32,0l-40,40A8,8,0,0,0,93.66,69.66Z"></path>
+                    </svg>
+                  </a>
+                ` : '-'}
+              </td>
+              <td>${new Date(m.completed_at).toLocaleString('pt-BR')}</td>
+              <td>
+                <div class="action-btns">
+                  <button class="icon-btn success" onclick="approveMission(${m.id})" title="Aprovar">
+                    <svg viewBox="0 0 256 256" fill="currentColor">
+                      <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm45.66-125.66a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,140.69l50.34-50.35A8,8,0,0,1,173.66,90.34Z"></path>
+                    </svg>
+                  </button>
+                  <button class="icon-btn danger" onclick="openRejectModal(${m.id})" title="Rejeitar">
+                    <svg viewBox="0 0 256 256" fill="currentColor">
+                      <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm37.66-133.66a8,8,0,0,1,0,11.32L139.31,128l26.35,26.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35A8,8,0,0,1,165.66,90.34Z"></path>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `).join('');
         } catch (error) {
-          console.error('Erro ao excluir missão:', error);
-          alert('Erro ao excluir missão');
+          console.error('Erro ao carregar missões pendentes:', error);
+          document.getElementById('pending-missions-loading').textContent = 'Erro ao carregar missões';
         }
       };
 
-      // ==================== RECOMPENSAS ====================
+      window.approveMission = async function(id) {
+        showConfirm('Aprovar missão', 'Tem certeza que deseja APROVAR esta missão?', async () => {
+          try {
+            const admin = SessionManager.getUser();
+            await DB.missions.approve(id, admin.id);
+            Toast.show('Missão aprovada com sucesso!', 'success');
+            await loadPendingMissions();
+            await loadUsers();
+            await loadStats();
+          } catch (error) {
+            console.error('Erro ao aprovar missão:', error);
+            Toast.show('Erro ao aprovar missão', 'error');
+          }
+        });
+      };
+
+      window.openRejectModal = function(id) {
+        currentRejectId = id;
+        document.getElementById('reject-reason').value = '';
+        document.getElementById('reject-modal').classList.add('active');
+      };
+
+      window.closeRejectModal = function() {
+        currentRejectId = null;
+        document.getElementById('reject-modal').classList.remove('active');
+      };
+
+      window.confirmReject = async function() {
+        const reason = document.getElementById('reject-reason').value.trim();
+        
+        if (!reason) {
+          Toast.show('Digite um motivo para a rejeição', 'error');
+          return;
+        }
+        
+        try {
+          const admin = SessionManager.getUser();
+          await DB.missions.reject(currentRejectId, reason, admin.id);
+          closeRejectModal();
+          Toast.show('Missão rejeitada com sucesso!', 'success');
+          await loadPendingMissions();
+        } catch (error) {
+          console.error('Erro ao rejeitar missão:', error);
+          Toast.show('Erro ao rejeitar missão', 'error');
+        }
+      };
+
       window.openRewardModal = function(editId = null) {
         editingRewardId = editId;
-        if (!editId) {
+        if (editId) {
+          const reward = rewards.find(r => r.id === editId);
+          if (reward) {
+            document.getElementById('reward-name').value = reward.name;
+            document.getElementById('reward-description').value = reward.description || '';
+            document.getElementById('reward-category').value = reward.category;
+            document.getElementById('reward-cost').value = reward.cost;
+            document.getElementById('reward-image').value = reward.image_url || '';
+          }
+        } else {
           document.getElementById('reward-name').value = '';
           document.getElementById('reward-description').value = '';
           document.getElementById('reward-category').value = 'diamond';
@@ -1167,6 +1575,7 @@
         editingRewardId = null;
       };
 
+      let rewards = [];
       window.saveReward = async function() {
         const name = document.getElementById('reward-name').value.trim();
         const description = document.getElementById('reward-description').value.trim();
@@ -1175,7 +1584,7 @@
         const image = document.getElementById('reward-image').value.trim();
 
         if (!name || !cost) {
-          alert('Preencha nome e custo');
+          Toast.show('Preencha nome e custo', 'error');
           return;
         }
 
@@ -1183,20 +1592,22 @@
           const rewardData = { name, description: description || null, category, cost, image_url: image };
           if (editingRewardId) {
             await DB.rewards.update(editingRewardId, rewardData);
+            Toast.show('Recompensa atualizada com sucesso!', 'success');
           } else {
             await DB.rewards.create(rewardData);
+            Toast.show('Recompensa criada com sucesso!', 'success');
           }
           await loadRewards();
           closeRewardModal();
         } catch (error) {
           console.error('Erro ao salvar recompensa:', error);
-          alert('Erro ao salvar recompensa');
+          Toast.show('Erro ao salvar recompensa', 'error');
         }
       };
 
       window.loadRewards = async function() {
         try {
-          const rewards = await DB.rewards.getAll();
+          rewards = await DB.rewards.getAll();
           const tbody = document.getElementById('rewards-body');
           const table = document.getElementById('rewards-table');
           const loading = document.getElementById('rewards-loading');
@@ -1216,8 +1627,16 @@
               <td>${r.image_url ? '✅' : '❌'}</td>
               <td>
                 <div class="action-btns">
-                  <button class="btn btn-primary" onclick="openRewardModal(${r.id})">Editar</button>
-                  <button class="btn btn-danger" onclick="deleteReward(${r.id})">Excluir</button>
+                  <button class="icon-btn" onclick="openRewardModal(${r.id})" title="Editar">
+                    <svg viewBox="0 0 256 256" fill="currentColor">
+                      <path d="M227.31,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"></path>
+                    </svg>
+                  </button>
+                  <button class="icon-btn danger" onclick="deleteReward(${r.id})" title="Excluir">
+                    <svg viewBox="0 0 256 256" fill="currentColor">
+                      <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
+                    </svg>
+                  </button>
                 </div>
               </td>
             </tr>
@@ -1229,17 +1648,18 @@
       };
 
       window.deleteReward = async function(id) {
-        if (!confirm('Tem certeza que deseja excluir esta recompensa?')) return;
-        try {
-          await DB.rewards.delete(id);
-          await loadRewards();
-        } catch (error) {
-          console.error('Erro ao excluir recompensa:', error);
-          alert('Erro ao excluir recompensa');
-        }
+        showConfirm('Excluir recompensa', 'Tem certeza que deseja excluir esta recompensa?', async () => {
+          try {
+            await DB.rewards.delete(id);
+            Toast.show('Recompensa excluída com sucesso!', 'success');
+            await loadRewards();
+          } catch (error) {
+            console.error('Erro ao excluir recompensa:', error);
+            Toast.show('Erro ao excluir recompensa', 'error');
+          }
+        });
       };
 
-      // ==================== USUÁRIOS ====================
       window.loadUsers = async function() {
         try {
           const users = await DB.rankings.getFullRanking();
@@ -1258,18 +1678,38 @@
 
           for (let i = 0; i < users.length; i++) {
             const u = users[i];
-            const missions = await DB.user_missions?.getByUser(u.id) || [];
+            const missions = await DB.missions.getByUser(u.id);
             tbody.innerHTML += `
               <tr>
                 <td>#${i + 1}</td>
-                <td>${u.nick} ${u.is_admin ? '👑' : ''}</td>
+                <td>
+                  ${u.nick}
+                  ${u.banned ? '<span class="banned-badge">BANIDO</span>' : ''}
+                  ${u.is_admin ? ' 👑' : ''}
+                </td>
                 <td>${u.points}</td>
                 <td>${missions.length}</td>
                 <td>${u.is_admin ? 'Sim' : 'Não'}</td>
                 <td>
                   <div class="action-btns">
-                    <button class="btn btn-primary" onclick="editUser('${u.id}')">Editar</button>
-                    <button class="btn btn-danger" onclick="banUser('${u.id}')">Banir</button>
+                    <button class="icon-btn" onclick="openEditUserModal('${u.id}')" title="Editar">
+                      <svg viewBox="0 0 256 256" fill="currentColor">
+                        <path d="M227.31,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"></path>
+                      </svg>
+                    </button>
+                    ${u.banned ? `
+                      <button class="icon-btn success" onclick="unbanUser('${u.id}')" title="Remover banimento">
+                        <svg viewBox="0 0 256 256" fill="currentColor">
+                          <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm45.66-125.66a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,140.69l50.34-50.35A8,8,0,0,1,173.66,90.34Z"></path>
+                        </svg>
+                      </button>
+                    ` : `
+                      <button class="icon-btn danger" onclick="banUser('${u.id}')" title="Banir">
+                        <svg viewBox="0 0 256 256" fill="currentColor">
+                          <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm37.66-133.66a8,8,0,0,1,0,11.32L139.31,128l26.35,26.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35A8,8,0,0,1,165.66,90.34Z"></path>
+                        </svg>
+                      </button>
+                    `}
                   </div>
                 </td>
               </tr>
@@ -1281,20 +1721,80 @@
         }
       };
 
-      window.editUser = function(id) { alert('Editar usuário em desenvolvimento'); };
-      window.banUser = function(id) { alert('Banir usuário em desenvolvimento'); };
+      window.openEditUserModal = async function(userId) {
+        editingUserId = userId;
+        const user = (await DB.users.getAll()).find(u => u.id === userId);
+        if (user) {
+          document.getElementById('edit-user-nick').value = user.nick;
+          document.getElementById('edit-user-points').value = user.points;
+          document.getElementById('edit-user-reason').value = '';
+          document.getElementById('edit-user-modal').classList.add('active');
+        }
+      };
 
-      // ==================== FILA ====================
+      window.closeEditUserModal = function() {
+        editingUserId = null;
+        document.getElementById('edit-user-modal').classList.remove('active');
+      };
+
+      window.saveUserEdit = async function() {
+        const points = parseInt(document.getElementById('edit-user-points').value);
+        const reason = document.getElementById('edit-user-reason').value.trim();
+
+        if (isNaN(points) || points < 0) {
+          Toast.show('Digite uma quantidade válida de pontos', 'error');
+          return;
+        }
+
+        if (!reason) {
+          Toast.show('Digite o motivo da alteração', 'error');
+          return;
+        }
+
+        try {
+          await DB.users.update(editingUserId, { points });
+          Toast.show(`Pontos alterados para ${points}`, 'success');
+          closeEditUserModal();
+          await loadUsers();
+          await loadStats();
+        } catch (error) {
+          console.error('Erro ao editar usuário:', error);
+          Toast.show('Erro ao editar usuário', 'error');
+        }
+      };
+
+      window.banUser = async function(userId) {
+        showConfirm('Banir usuário', 'Tem certeza que deseja banir este usuário?', async () => {
+          try {
+            await DB.users.ban(userId);
+            Toast.show('Usuário banido com sucesso!', 'success');
+            await loadUsers();
+          } catch (error) {
+            console.error('Erro ao banir usuário:', error);
+            Toast.show('Erro ao banir usuário', 'error');
+          }
+        });
+      };
+
+      window.unbanUser = async function(userId) {
+        showConfirm('Remover banimento', 'Remover banimento deste usuário?', async () => {
+          try {
+            await DB.users.unban(userId);
+            Toast.show('Banimento removido com sucesso!', 'success');
+            await loadUsers();
+          } catch (error) {
+            console.error('Erro ao remover banimento:', error);
+            Toast.show('Erro ao remover banimento', 'error');
+          }
+        });
+      };
+
       window.loadQueue = async function() {
         try {
           const store = await DB.store.getStatus();
-          const users = await DB.users.getAll();
-          const pendingMissions = await DB.user_missions?.getPending() || [];
+          const queue = await DB.redemptions.getQueue();
+          const pendingRedemptions = await DB.redemptions.getPending();
           
-          const userIdsWithPending = [...new Set(pendingMissions.map(m => m.user_id))];
-          let queue = users.filter(u => userIdsWithPending.includes(u.id));
-          queue.sort((a, b) => b.points - a.points);
-
           const tbody = document.getElementById('queue-body');
           const table = document.getElementById('queue-table');
           const loading = document.getElementById('queue-loading');
@@ -1302,14 +1802,15 @@
           const currentNick = document.getElementById('current-turn-nick');
           const skipBtn = document.getElementById('skip-turn-btn');
           const turnInfo = document.getElementById('current-turn-info');
+          const currentTurn = await DB.redemptions.getCurrentTurn();
 
           if (queue.length === 0) {
-            loading.textContent = 'Nenhum usuário na fila';
+            loading.innerHTML = '<div class="empty-state">Nenhum usuário na fila</div>';
             loading.style.display = 'block';
             table.style.display = 'none';
             currentBox.style.display = 'none';
-            turnInfo.innerHTML = '⏸️ Fila vazia';
-            skipBtn.disabled = true;
+            turnInfo.innerHTML = 'Fila vazia';
+            if (skipBtn) skipBtn.disabled = true;
             return;
           }
 
@@ -1317,71 +1818,81 @@
           table.style.display = 'table';
 
           if (store.is_open) {
-            if (store.current_user_id) {
-              const current = users.find(u => u.id === store.current_user_id);
-              currentNick.textContent = current?.nick || '---';
+            if (currentTurn) {
+              currentNick.textContent = currentTurn.nick;
               currentBox.style.display = 'flex';
-              skipBtn.disabled = false;
-              turnInfo.innerHTML = `🎮 Vez: ${current?.nick}`;
+              if (skipBtn) skipBtn.disabled = false;
+              turnInfo.innerHTML = `Vez: ${currentTurn.nick}`;
+              
+              if (timerInterval) clearInterval(timerInterval);
               startTimer(store.turn_start_time);
             } else {
-              await DB.store.startTurn(queue[0].id);
-              location.reload();
+              currentBox.style.display = 'none';
+              if (skipBtn) skipBtn.disabled = true;
+              turnInfo.innerHTML = 'Aguardando próximo turno';
             }
           } else {
             currentBox.style.display = 'none';
-            skipBtn.disabled = true;
+            if (skipBtn) skipBtn.disabled = true;
             turnInfo.innerHTML = '🔴 Loja fechada';
           }
 
           tbody.innerHTML = queue.map((user, index) => {
-            const isCurrent = store.current_user_id === user.id;
-            const userPending = pendingMissions.filter(m => m.user_id === user.id).length;
+            const isCurrent = currentTurn && currentTurn.id === user.id;
+            const userPending = pendingRedemptions.filter(r => r.user_id === user.id).length;
             return `
-              <tr style="${isCurrent ? 'background-color: rgba(14,165,233,0.1); font-weight:bold;' : ''}">
-                <td>${index + 1}° ${isCurrent ? '👈 (ATUAL)' : ''}</td>
+              <tr style="${isCurrent ? 'background-color: rgba(117, 175, 202, 0.1); font-weight: bold;' : ''}">
+                <td>${index + 1}° ${isCurrent ? '(ATUAL)' : ''}</td>
                 <td>${user.nick}</td>
                 <td>${user.points}</td>
-                <td>${userPending} missão(ões)</td>
-                <td>${isCurrent ? '🎮 Jogando' : '⏳ Aguardando'}</td>
+                <td>${userPending} resgate(s)</td>
+                <td>${isCurrent ? 'Jogando' : 'Aguardando'}</td>
               </tr>
             `;
           }).join('');
         } catch (error) {
           console.error('Erro ao carregar fila:', error);
+          document.getElementById('queue-loading').innerHTML = '<div class="empty-state">Erro ao carregar fila</div>';
         }
       };
 
       function startTimer(startTime) {
         if (timerInterval) clearInterval(timerInterval);
+        
         timerInterval = setInterval(async () => {
-          const remaining = await DB.store.getRemainingTime();
-          const mins = Math.floor(remaining / 60);
-          const secs = remaining % 60;
-          document.getElementById('turn-timer').textContent = 
-            `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
-          
-          if (remaining <= 0) {
-            clearInterval(timerInterval);
-            await DB.store.nextTurn();
-            loadQueue();
+          try {
+            const remaining = await DB.store.getRemainingTime();
+            const mins = Math.floor(remaining / 60);
+            const secs = remaining % 60;
+            const timerEl = document.getElementById('turn-timer');
+            if (timerEl) {
+              timerEl.textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+            }
+            
+            if (remaining <= 0) {
+              clearInterval(timerInterval);
+              await DB.redemptions.processNextTurn();
+              loadQueue();
+            }
+          } catch (error) {
+            console.error('Erro no timer:', error);
           }
         }, 1000);
       }
 
       window.skipTurn = async function() {
-        if (!confirm('Pular a vez do usuário atual?')) return;
-        try {
-          await DB.store.nextTurn();
-          loadQueue();
-          alert('Vez pulada com sucesso!');
-        } catch (error) {
-          console.error('Erro ao pular vez:', error);
-          alert('Erro ao pular vez');
-        }
+        showConfirm('Pular vez', 'Pular a vez do usuário atual?', async () => {
+          try {
+            await DB.redemptions.processNextTurn();
+            Toast.show('Vez pulada com sucesso!', 'success');
+            loadQueue();
+          } catch (error) {
+            console.error('Erro ao pular vez:', error);
+            Toast.show('Erro ao pular vez', 'error');
+          }
+        });
       };
 
-      // ==================== ATRIBUIR MISSÃO ====================
       window.openAssignMissionModal = async function() {
         try {
           const users = await DB.users.getAll();
@@ -1390,14 +1901,14 @@
           const missionSelect = document.getElementById('assign-mission');
 
           userSelect.innerHTML = '<option value="">Selecione um usuário</option>' + 
-            users.map(u => `<option value="${u.id}">${u.nick} (${u.points} pts)</option>`).join('');
+            users.filter(u => !u.banned).map(u => `<option value="${u.id}">${u.nick} (${u.points} pts)</option>`).join('');
           missionSelect.innerHTML = '<option value="">Selecione uma missão</option>' + 
             missions.map(m => `<option value="${m.id}" data-points="${m.points}">${m.name} - ${m.points} pts</option>`).join('');
 
           document.getElementById('assign-mission-modal').classList.add('active');
         } catch (error) {
           console.error('Erro ao carregar dados:', error);
-          alert('Erro ao carregar dados');
+          Toast.show('Erro ao carregar dados', 'error');
         }
       };
 
@@ -1412,27 +1923,25 @@
         const missionPoints = missionSelect.options[missionSelect.selectedIndex]?.dataset.points;
 
         if (!userId || !missionId) {
-          alert('Selecione usuário e missão');
+          Toast.show('Selecione usuário e missão', 'error');
           return;
         }
 
         try {
-          const result = await DB.missions.completeMission(userId, missionId, parseInt(missionPoints));
-          if (result.success) {
-            alert(`Missão atribuída! ${missionPoints} pontos adicionados.`);
-            closeAssignMissionModal();
-            loadStats();
-            loadUsers();
-          } else {
-            alert('Erro ao atribuir missão');
-          }
+          const user = (await DB.users.getAll()).find(u => u.id === userId);
+          const newPoints = user.points + parseInt(missionPoints);
+          await DB.users.update(userId, { points: newPoints });
+          
+          Toast.show(`Missão atribuída! ${missionPoints} pontos adicionados.`, 'success');
+          closeAssignMissionModal();
+          loadStats();
+          loadUsers();
         } catch (error) {
           console.error('Erro ao atribuir missão:', error);
-          alert('Erro ao atribuir missão');
+          Toast.show('Erro ao atribuir missão', 'error');
         }
       };
 
-      // ==================== CONFIGURAÇÕES ====================
       window.loadStoreSettings = async function() {
         try {
           const status = await DB.store.getStatus();
@@ -1450,72 +1959,34 @@
       window.saveStoreSettings = async function() {
         try {
           const isOpen = document.getElementById('store-status').checked;
-          const nextOpening = document.getElementById('next-opening').value;
+          let nextOpening = document.getElementById('next-opening').value;
+          
+          if (!nextOpening) {
+            const nextDate = await DB.store.calculateNextOpenDate();
+            nextOpening = nextDate.slice(0,16);
+          }
+          
           await DB.store.setStatus(isOpen, nextOpening || null);
-          alert('Configurações salvas com sucesso!');
+          
+          if (isOpen) {
+            await DB.redemptions.processNextTurn();
+            Toast.show('✅ Loja aberta! Fecha automaticamente dia 10.', 'success');
+          } else {
+            if (nextOpening) {
+              const date = new Date(nextOpening).toLocaleDateString('pt-BR');
+              Toast.show(`🔴 Loja fechada. Próxima abertura: ${date}`, 'success');
+            } else {
+              Toast.show('🔴 Loja fechada. Configurações salvas!', 'success');
+            }
+          }
+          
           loadQueue();
         } catch (error) {
           console.error('Erro ao salvar configurações:', error);
-          alert('Erro ao salvar configurações');
+          Toast.show('Erro ao salvar configurações', 'error');
         }
       };
 
-      // ==================== PONTOS ====================
-      window.addPoints = async function() {
-        const nick = document.getElementById('points-nick').value.trim();
-        const amount = parseInt(document.getElementById('points-amount').value);
-        const reason = document.getElementById('points-reason').value.trim();
-
-        if (!nick || !amount) {
-          alert('Preencha nick e quantidade');
-          return;
-        }
-
-        try {
-          const user = await DB.users.getByNick(nick);
-          if (!user) { alert('Usuário não encontrado'); return; }
-          const newPoints = (user.points || 0) + amount;
-          await DB.users.update(user.id, { points: newPoints });
-          alert(`${amount} pontos adicionados para ${nick}\nMotivo: ${reason || 'N/A'}`);
-          document.getElementById('points-nick').value = '';
-          document.getElementById('points-amount').value = '';
-          document.getElementById('points-reason').value = '';
-          loadStats();
-          loadUsers();
-        } catch (error) {
-          console.error('Erro ao adicionar pontos:', error);
-          alert('Erro ao adicionar pontos');
-        }
-      };
-
-      window.removePoints = async function() {
-        const nick = document.getElementById('points-nick').value.trim();
-        const amount = parseInt(document.getElementById('points-amount').value);
-        const reason = document.getElementById('points-reason').value.trim();
-
-        if (!nick || !amount) {
-          alert('Preencha nick e quantidade');
-          return;
-        }
-
-        try {
-          const user = await DB.users.getByNick(nick);
-          if (!user) { alert('Usuário não encontrado'); return; }
-          const newPoints = Math.max(0, (user.points || 0) - amount);
-          await DB.users.update(user.id, { points: newPoints });
-          alert(`${amount} pontos removidos de ${nick}\nMotivo: ${reason || 'N/A'}`);
-          document.getElementById('points-nick').value = '';
-          document.getElementById('points-amount').value = '';
-          document.getElementById('points-reason').value = '';
-          loadStats();
-          loadUsers();
-        } catch (error) {
-          console.error('Erro ao remover pontos:', error);
-          alert('Erro ao remover pontos');
-        }
-      };
-
-      // ==================== INICIALIZAÇÃO ====================
       await loadStats();
       await loadMissions();
       await loadRewards();
@@ -1527,100 +1998,10 @@
       setInterval(async () => {
         await loadStats();
         await loadQueue();
+        await DB.store.checkAutoClose();
+        await DB.store.checkAndOpenNext();
       }, 30000);
     })();
-
-    let currentRejectId = null;
-
-    window.loadPendingMissions = async function() {
-      try {
-        const missions = await DB.missions.getPendingWithDetails();
-        console.log('Missões pendentes carregadas:', missions); // Debug
-        
-        const tbody = document.getElementById('pending-missions-body');
-        const table = document.getElementById('pending-missions-table');
-        const loading = document.getElementById('pending-missions-loading');
-        const badge = document.getElementById('pending-missions-count');
-        
-        if (badge) {
-          badge.textContent = `${missions.length} pendente${missions.length !== 1 ? 's' : ''}`;
-        }
-
-        if (!missions || missions.length === 0) {
-          loading.textContent = 'Nenhuma missão pendente';
-          loading.style.display = 'block';
-          table.style.display = 'none';
-          return;
-        }
-
-        loading.style.display = 'none';
-        table.style.display = 'table';
-        
-        tbody.innerHTML = missions.map(m => `
-          <tr>
-            <td><strong>${m.users?.nick || 'Desconhecido'}</strong></td>
-            <td>${m.missions?.name || 'Missão'}</td>
-            <td>${m.missions?.points || 0} pts</td>
-            <td>${new Date(m.completed_at).toLocaleString('pt-BR')}</td>
-            <td>
-              <div class="action-btns">
-                <button class="btn btn-success" onclick="approveMission(${m.id})">Aprovar</button>
-                <button class="btn btn-danger" onclick="openRejectModal(${m.id})">Rejeitar</button>
-              </div>
-            </td>
-          </tr>
-        `).join('');
-      } catch (error) {
-        console.error('Erro ao carregar missões pendentes:', error);
-        document.getElementById('pending-missions-loading').textContent = 'Erro ao carregar missões';
-      }
-    };
-
-    window.approveMission = async function(id) {
-      if (!confirm('Tem certeza que deseja APROVAR esta missão? Os pontos serão adicionados ao usuário.')) return;
-      
-      try {
-        const admin = SessionManager.getUser();
-        await DB.missions.approve(id, admin.id);
-        alert('Missão aprovada com sucesso!');
-        await loadPendingMissions();
-        await loadUsers();
-      } catch (error) {
-        console.error('Erro ao aprovar missão:', error);
-        alert('Erro ao aprovar missão: ' + error.message);
-      }
-    };
-
-    window.openRejectModal = function(id) {
-      currentRejectId = id;
-      document.getElementById('reject-reason').value = '';
-      document.getElementById('reject-modal').classList.add('active');
-    };
-
-    window.closeRejectModal = function() {
-      currentRejectId = null;
-      document.getElementById('reject-modal').classList.remove('active');
-    };
-
-    window.confirmReject = async function() {
-      const reason = document.getElementById('reject-reason').value.trim();
-      
-      if (!reason) {
-        alert('Digite um motivo para a rejeição');
-        return;
-      }
-      
-      try {
-        const admin = SessionManager.getUser();
-        await DB.missions.reject(currentRejectId, reason, admin.id);
-        closeRejectModal();
-        alert('Missão rejeitada com sucesso!');
-        await loadPendingMissions();
-      } catch (error) {
-        console.error('Erro ao rejeitar missão:', error);
-        alert('Erro ao rejeitar missão: ' + error.message);
-      }
-    };
   </script>
 </body>
 </html>
