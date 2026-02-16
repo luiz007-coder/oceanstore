@@ -1,87 +1,50 @@
 const Auth = {
-  generateCode() {
-    const random = Math.random().toString(36).substring(2, 7).toUpperCase();
-    return `EFE-${random}`;
-  },
-
-  async verifyHabboMission(nick, code) {
+  async verifyMember(nick) {
     try {
-      const existingUser = SessionManager.getUser();
-      if (existingUser && existingUser.nick.toLowerCase() === nick.toLowerCase()) {
-        return { success: true, skipVerification: true };
-      }
-
-      const response = await fetch(`https://www.habbo.com.br/api/public/users?name=${encodeURIComponent(nick)}`);
-      
-      if (!response.ok) {
-        return { success: false, error: 'Usuário não encontrado no Habbo' };
-      }
-
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEETS_ID}/values/Listagem de Membros!D20:D1000?key=${SHEETS_API_KEY}`;
+      const response = await fetch(url);
       const data = await response.json();
-
-      const mission = data.motto || '';
-
-      if (mission.includes(code)) {
-        return { success: true };
-      } else {
-        return { success: false, error: 'Código não encontrado na missão' };
-      }
+      
+      if (!data.values) return false;
+      
+      const members = data.values.map(row => row[0]?.trim().toLowerCase());
+      return members.includes(nick.toLowerCase());
     } catch (error) {
-      console.error('Erro ao verificar Habbo:', error);
-      return { success: false, error: 'Erro ao conectar com Habbo' };
+      console.error('Erro ao verificar membro:', error);
+      return false;
     }
   },
 
   async login(nick) {
     try {
-      const result = await DB.users.findOrCreate(nick);
+      const isMember = await this.verifyMember(nick);
       
-      if (!result.created) {
-        SessionManager.setUser(result.user);
-        return { success: true, user: result.user, skipCode: true };
-      }
-    } catch (error) {
-      console.error('Erro ao verificar usuário existente:', error);
-    }
-
-    const code = this.generateCode();
-    SessionManager.set('verification_code', code);
-    SessionManager.set('pending_nick', nick);
-    return { success: false, code, requiresVerification: true };
-  },
-
-  async completeVerification() {
-    const nick = SessionManager.get('pending_nick');
-    const code = SessionManager.get('verification_code');
-    
-    if (!nick || !code) {
-      return { success: false, error: 'Sessão inválida' };
-    }
-
-    try {
-      const habboVerification = await this.verifyHabboMission(nick, code);
-      
-      if (!habboVerification.success) {
-        return habboVerification;
+      if (!isMember) {
+        return { 
+          success: false, 
+          error: 'Opa, parece que você não é membro da Escola de Formação de Executivos. Se acha que é um erro, contate o ministério da companhia.'
+        };
       }
 
       const result = await DB.users.findOrCreate(nick);
       
       SessionManager.setUser(result.user);
-      SessionManager.remove('verification_code');
-      SessionManager.remove('pending_nick');
       
-      return { success: true, user: result.user };
+      return { 
+        success: true, 
+        user: result.user,
+        isNew: result.created 
+      };
       
     } catch (error) {
-      console.error('Erro na verificação:', error);
-      return { success: false, error: 'Erro interno' };
+      console.error('Erro no login:', error);
+      return { success: false, error: 'Erro interno no servidor' };
     }
   },
 
   async checkAuth() {
     if (!SessionManager.isAuthenticated()) {
-      window.location.href = 'login.html';
+      window.location.href = 'index.html';
       return false;
     }
     
@@ -106,13 +69,13 @@ const Auth = {
   async checkAdmin() {
     const user = SessionManager.getUser();
     if (!user) {
-      window.location.href = 'login.html';
+      window.location.href = 'index.html';
       return false;
     }
     
     const isAdmin = await SheetsAPI.checkIsAdmin(user.nick);
     if (!isAdmin) {
-      window.location.href = 'index.html';
+      window.location.href = 'overview.html';
       return false;
     }
     return true;
