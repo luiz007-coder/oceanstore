@@ -939,6 +939,7 @@
         display: block;
         overflow-x: auto;
         white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
       }
 
       .data-table th,
@@ -1374,211 +1375,222 @@
   <script src="js/auth.js"></script>
   <script src="js/profile-header.js"></script>
   <script>
-    (async function() {
-      if (!(await Auth.checkAuth())) return;
-      
-      ProfileHeader.init();
-
-      function getAvatarUrl(nick) {
-        return `https://www.habbo.com.br/habbo-imaging/avatarimage?&user=${encodeURIComponent(nick)}&action=std&direction=2&head_direction=2&img_format=png&gesture=std&headonly=1&size=l`;
+    (function() {
+      if (!SessionManager.isAuthenticated()) {
+        window.location.href = 'index.html';
       }
+    })();
+  </script>
+  <script>
+      if (!SessionManager.isAuthenticated()) {
+        window.location.replace('index.html');
+      } else {
+        (async function() {
+          if (!(await Auth.checkAuth())) return;
+          
+          ProfileHeader.init();
 
-      function getPositionClass(index) {
-        if (index === 0) return 'position-gold';
-        if (index === 1) return 'position-silver';
-        if (index === 2) return 'position-bronze';
-        return '';
-      }
-
-      async function loadDashboard() {
-        try {
-          const user = SessionManager.getUser();
-
-          const dbUser = await DB.users.getByNick(user.nick);
-          if (dbUser && dbUser.points !== user.points) {
-            user.points = dbUser.points;
-            SessionManager.setUser(user);
-            ProfileHeader.update();
+          function getAvatarUrl(nick) {
+            return `https://www.habbo.com.br/habbo-imaging/avatarimage?&user=${encodeURIComponent(nick)}&action=std&direction=2&head_direction=2&img_format=png&gesture=std&headonly=1&size=l`;
           }
 
-          document.getElementById('user-points').textContent = user.points;
-          
-          const userRedemptions = await DB.redemptions.getByUser(user.id);
-          document.getElementById('total-redemptions').textContent = userRedemptions.length;
-          
-          const userPosition = await DB.rankings.getUserPosition(user.id);
-          document.getElementById('user-rank').textContent = `#${userPosition}`;
-          
-          const allRewards = await DB.rewards.getAll();
-          document.getElementById('total-rewards').textContent = allRewards.length;
-
-          const allUsers = await DB.users.getAll();
-          const nonBannedUsers = allUsers.filter(u => !u.banned);
-          const ranking = nonBannedUsers.slice(0, 5);
-          
-          const rankingList = document.getElementById('ranking-list');
-          const rankingLoading = document.getElementById('ranking-loading');
-          
-          if (ranking.length > 0) {
-            rankingLoading.style.display = 'none';
-            rankingList.style.display = 'block';
-            rankingList.innerHTML = ranking.map((item, index) => {
-              const isAdmin = item.is_admin;
-              return `
-                <li class="ranking-item">
-                  <span class="ranking-position ${getPositionClass(index)}">${index + 1}º</span>
-                  <img src="${getAvatarUrl(item.nick)}" alt="${item.nick}" class="ranking-avatar">
-                  <div class="ranking-info">
-                    <span class="ranking-nick">${item.nick}</span>
-                    ${isAdmin ? '<i class="ph ph-crown"></i>' : ''}
-                  </div>
-                  <span class="ranking-points">${item.points} pts</span>
-                </li>
-              `;
-            }).join('');
-          } else {
-            rankingLoading.textContent = 'Nenhum usuário encontrado';
+          function getPositionClass(index) {
+            if (index === 0) return 'position-gold';
+            if (index === 1) return 'position-silver';
+            if (index === 2) return 'position-bronze';
+            return '';
           }
 
-          const allRedemptions = await DB.redemptions.getAll();
-          const redemptionList = document.getElementById('redemption-list');
-          const redemptionsLoading = document.getElementById('redemptions-loading');
-          
-          if (allRedemptions.length > 0) {
-            redemptionsLoading.style.display = 'none';
-            redemptionList.style.display = 'block';
-            redemptionList.innerHTML = allRedemptions.slice(0, 5).map(item => {
-              const userNick = item.users?.nick || 'Desconhecido';
-              return `
-                <li class="redemption-item">
-                  <div class="redemption-info">
-                    <img src="${getAvatarUrl(userNick)}" alt="${userNick}" class="redemption-avatar">
-                    <div class="redemption-details">
-                      <div class="redemption-nick">${userNick}</div>
-                      <div class="redemption-reward">${item.reward_name || 'Recompensa'}</div>
-                    </div>
-                  </div>
-                  <span class="status-badge status-${item.status}">${item.status}</span>
-                </li>
-              `;
-            }).join('');
-          } else {
-            redemptionsLoading.textContent = 'Nenhum resgate encontrado';
+          async function loadDashboard() {
+            try {
+              const user = SessionManager.getUser();
+
+              const dbUser = await DB.users.getByNick(user.nick);
+              if (dbUser && dbUser.points !== user.points) {
+                user.points = dbUser.points;
+                SessionManager.setUser(user);
+                ProfileHeader.update();
+              }
+
+              document.getElementById('user-points').textContent = user.points;
+              
+              const userRedemptions = await DB.redemptions.getByUser(user.id);
+              document.getElementById('total-redemptions').textContent = userRedemptions.length;
+              
+              const userPosition = await DB.rankings.getUserPosition(user.id);
+              document.getElementById('user-rank').textContent = `#${userPosition}`;
+              
+              const allRewards = await DB.rewards.getAll();
+              document.getElementById('total-rewards').textContent = allRewards.length;
+
+              const allUsers = await DB.users.getAll();
+              const nonBannedUsers = allUsers.filter(u => !u.banned);
+              const ranking = nonBannedUsers.slice(0, 5);
+              
+              const rankingList = document.getElementById('ranking-list');
+              const rankingLoading = document.getElementById('ranking-loading');
+              
+              if (ranking.length > 0) {
+                rankingLoading.style.display = 'none';
+                rankingList.style.display = 'block';
+                rankingList.innerHTML = ranking.map((item, index) => {
+                  const isAdmin = item.is_admin;
+                  return `
+                    <li class="ranking-item">
+                      <span class="ranking-position ${getPositionClass(index)}">${index + 1}º</span>
+                      <img src="${getAvatarUrl(item.nick)}" alt="${item.nick}" class="ranking-avatar">
+                      <div class="ranking-info">
+                        <span class="ranking-nick">${item.nick}</span>
+                        ${isAdmin ? '<i class="ph ph-crown"></i>' : ''}
+                      </div>
+                      <span class="ranking-points">${item.points} pts</span>
+                    </li>
+                  `;
+                }).join('');
+              } else {
+                rankingLoading.textContent = 'Nenhum usuário encontrado';
+              }
+
+              const allRedemptions = await DB.redemptions.getAll();
+              const redemptionList = document.getElementById('redemption-list');
+              const redemptionsLoading = document.getElementById('redemptions-loading');
+              
+              if (allRedemptions.length > 0) {
+                redemptionsLoading.style.display = 'none';
+                redemptionList.style.display = 'block';
+                redemptionList.innerHTML = allRedemptions.slice(0, 5).map(item => {
+                  const userNick = item.users?.nick || 'Desconhecido';
+                  return `
+                    <li class="redemption-item">
+                      <div class="redemption-info">
+                        <img src="${getAvatarUrl(userNick)}" alt="${userNick}" class="redemption-avatar">
+                        <div class="redemption-details">
+                          <div class="redemption-nick">${userNick}</div>
+                          <div class="redemption-reward">${item.reward_name || 'Recompensa'}</div>
+                        </div>
+                      </div>
+                      <span class="status-badge status-${item.status}">${item.status}</span>
+                    </li>
+                  `;
+                }).join('');
+              } else {
+                redemptionsLoading.textContent = 'Nenhum resgate encontrado';
+              }
+
+            } catch (error) {
+              console.error('Erro ao carregar dashboard:', error);
+              document.querySelectorAll('.loading').forEach(el => {
+                el.textContent = 'Erro ao carregar dados';
+              });
+            }
           }
 
-        } catch (error) {
-          console.error('Erro ao carregar dashboard:', error);
-          document.querySelectorAll('.loading').forEach(el => {
-            el.textContent = 'Erro ao carregar dados';
-          });
-        }
-      }
+          let countdownInterval = null;
+          let targetDate = null;
 
-      let countdownInterval = null;
-      let targetDate = null;
+          async function updateStoreStatus() {
+            try {
+              const status = await DB.store.getStatus();
+              const storeStatusEl = document.getElementById('store-status');
+              const queueMessage = document.getElementById('queue-message');
+              const queueText = document.getElementById('queue-text');
+              const countdownEl = document.getElementById('countdown');
+              const countdownLabel = document.getElementById('countdown-label');
+              
+              if (status.is_open) {
+                const remainingDays = await DB.store.getRemainingDays();
+                storeStatusEl.textContent = `🟢 Loja aberta (fecha em ${remainingDays} dias)`;
+                storeStatusEl.style.color = '#10b981';
+                queueMessage.style.display = 'none';
+                countdownLabel.textContent = 'Status';
+                countdownEl.textContent = 'Aberto agora';
 
-      async function updateStoreStatus() {
-        try {
-          const status = await DB.store.getStatus();
-          const storeStatusEl = document.getElementById('store-status');
-          const queueMessage = document.getElementById('queue-message');
-          const queueText = document.getElementById('queue-text');
-          const countdownEl = document.getElementById('countdown');
-          const countdownLabel = document.getElementById('countdown-label');
-          
-          if (status.is_open) {
-            const remainingDays = await DB.store.getRemainingDays();
-            storeStatusEl.textContent = `🟢 Loja aberta (fecha em ${remainingDays} dias)`;
-            storeStatusEl.style.color = '#10b981';
-            queueMessage.style.display = 'none';
-            countdownLabel.textContent = 'Status';
-            countdownEl.textContent = 'Aberto agora';
+                if (countdownInterval) {
+                  clearInterval(countdownInterval);
+                  countdownInterval = null;
+                }
+              } else {
+                storeStatusEl.textContent = '🔴 Loja fechada';
+                storeStatusEl.style.color = '#ef4444';
+                
+                const pendingCount = await DB.redemptions.getPendingCount();
+                const user = SessionManager.getUser();
+                
+                if (pendingCount > 0 && user) {
+                  const userPosition = await DB.rankings.getUserPosition(user.id);
+                  queueText.innerHTML = `Sua posição é: <strong>#${userPosition}</strong>. Aguarde a próxima abertura! (${pendingCount} resgates pendentes)`;
+                  queueMessage.style.display = 'flex';
+                }
 
+                if (status.next_open_date) {
+                  targetDate = new Date(status.next_open_date);
+                  countdownLabel.textContent = 'Próxima Abertura (dia 5)';
+                  startRealTimeCountdown();
+                } else {
+                  const nextDate = await DB.store.calculateNextOpenDate();
+                  targetDate = new Date(nextDate);
+                  countdownLabel.textContent = 'Próxima Abertura (dia 5)';
+                  startRealTimeCountdown();
+                }
+              }
+            } catch (error) {
+              console.error('Erro ao atualizar status da loja:', error);
+            }
+          }
+
+          function startRealTimeCountdown() {
             if (countdownInterval) {
               clearInterval(countdownInterval);
-              countdownInterval = null;
-            }
-          } else {
-            storeStatusEl.textContent = '🔴 Loja fechada';
-            storeStatusEl.style.color = '#ef4444';
-            
-            const pendingCount = await DB.redemptions.getPendingCount();
-            const user = SessionManager.getUser();
-            
-            if (pendingCount > 0 && user) {
-              const userPosition = await DB.rankings.getUserPosition(user.id);
-              queueText.innerHTML = `Sua posição é: <strong>#${userPosition}</strong>. Aguarde a próxima abertura! (${pendingCount} resgates pendentes)`;
-              queueMessage.style.display = 'flex';
             }
 
-            if (status.next_open_date) {
-              targetDate = new Date(status.next_open_date);
-              countdownLabel.textContent = 'Próxima Abertura (dia 5)';
-              startRealTimeCountdown();
-            } else {
-              const nextDate = await DB.store.calculateNextOpenDate();
-              targetDate = new Date(nextDate);
-              countdownLabel.textContent = 'Próxima Abertura (dia 5)';
-              startRealTimeCountdown();
+            function updateTimer() {
+              if (!targetDate) {
+                document.getElementById('countdown').textContent = '--:--:--';
+                return;
+              }
+              
+              const now = new Date().getTime();
+              const target = targetDate.getTime();
+              const diff = target - now;
+
+              if (diff <= 0) {
+                document.getElementById('countdown').textContent = '00:00:00';
+                updateStoreStatus();
+                return;
+              }
+
+              const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+              const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+              const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+              const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+              let timeString;
+              if (days > 0) {
+                timeString = `${days}d ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+              } else {
+                timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+              }
+              
+              document.getElementById('countdown').textContent = timeString;
             }
+
+            updateTimer();
+            countdownInterval = setInterval(updateTimer, 1000);
           }
-        } catch (error) {
-          console.error('Erro ao atualizar status da loja:', error);
-        }
+
+          window.addEventListener('beforeunload', function() {
+            if (countdownInterval) {
+              clearInterval(countdownInterval);
+            }
+          });
+
+          await loadDashboard();
+          await updateStoreStatus();
+
+          setInterval(updateStoreStatus, 30000);
+          setInterval(loadDashboard, 30000);
+        })();
       }
-
-      function startRealTimeCountdown() {
-        if (countdownInterval) {
-          clearInterval(countdownInterval);
-        }
-
-        function updateTimer() {
-          if (!targetDate) {
-            document.getElementById('countdown').textContent = '--:--:--';
-            return;
-          }
-          
-          const now = new Date().getTime();
-          const target = targetDate.getTime();
-          const diff = target - now;
-
-          if (diff <= 0) {
-            document.getElementById('countdown').textContent = '00:00:00';
-            updateStoreStatus();
-            return;
-          }
-
-          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-          let timeString;
-          if (days > 0) {
-            timeString = `${days}d ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-          } else {
-            timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-          }
-          
-          document.getElementById('countdown').textContent = timeString;
-        }
-
-        updateTimer();
-        countdownInterval = setInterval(updateTimer, 1000);
-      }
-
-      window.addEventListener('beforeunload', function() {
-        if (countdownInterval) {
-          clearInterval(countdownInterval);
-        }
-      });
-
-      await loadDashboard();
-      await updateStoreStatus();
-
-      setInterval(updateStoreStatus, 30000);
-      setInterval(loadDashboard, 30000);
-    })();
 
     document.addEventListener('DOMContentLoaded', function() {
       const menuToggle = document.getElementById('menuToggle');

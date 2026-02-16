@@ -33,6 +33,6 @@ const SessionManager = {
 
   logout() {
     this.remove('user');
-    window.location.href = 'index.html';
+    window.location.replace('index.html');
   }
 };

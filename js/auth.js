@@ -44,7 +44,7 @@ const Auth = {
 
   async checkAuth() {
     if (!SessionManager.isAuthenticated()) {
-      window.location.href = 'index.html';
+      window.location.replace('index.html');
       return false;
     }
     
@@ -69,13 +69,13 @@ const Auth = {
   async checkAdmin() {
     const user = SessionManager.getUser();
     if (!user) {
-      window.location.href = 'index.html';
+      window.location.replace('index.html');
       return false;
     }
     
     const isAdmin = await SheetsAPI.checkIsAdmin(user.nick);
     if (!isAdmin) {
-      window.location.href = 'overview.html';
+      window.location.replace('overview.html');
       return false;
     }
     return true;
@@ -83,5 +83,6 @@ const Auth = {
 
   logout() {
     SessionManager.logout();
+    window.location.replace('index.html');
   }
 };

@@ -850,6 +850,7 @@
       .data-table {
         display: block;
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
       }
       .stats-grid {
         grid-template-columns: 1fr;
@@ -1642,681 +1643,692 @@
   <script src="js/auth.js"></script>
   <script src="js/profile-header.js"></script>
   <script>
-    (async function() {
-      if (!(await Auth.checkAuth()) || !(await Auth.checkAdmin())) return;
-      ProfileHeader.init();
-
-      let editingMissionId = null;
-      let editingRewardId = null;
-      let editingUserId = null;
-      let currentRejectId = null;
-      let timerInterval = null;
-
-      window.showTab = function(tab) {
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        event.target.classList.add('active');
-        document.getElementById(`tab-${tab}`).classList.add('active');
-      };
-
-      async function loadStats() {
-        try {
-          const users = await DB.users.getAll();
-          document.getElementById('total-users').textContent = users.length;
-          
-          const pendingMissions = await DB.missions.getPendingWithDetails();
-          document.getElementById('pending-count').textContent = pendingMissions.length;
-          
-          const totalPoints = users.reduce((sum, u) => sum + (u.points || 0), 0);
-          document.getElementById('total-points').textContent = totalPoints.toLocaleString();
-          
-          try {
-            const missionsToday = await DB.missions.getTodayCount();
-            document.getElementById('missions-today').textContent = missionsToday;
-          } catch (error) {
-            console.error('Erro ao carregar missões hoje:', error);
-            document.getElementById('missions-today').textContent = '0';
-          }
-        } catch (error) {
-          console.error('Erro ao carregar stats:', error);
-        }
+    (function() {
+      if (!SessionManager.isAuthenticated()) {
+        window.location.href = 'index.html';
       }
+    })();
+  </script>
+  <script>
+    if (!SessionManager.isAuthenticated()) {
+        window.location.replace('index.html');
+      } else {
+        (async function() {
+          if (!(await Auth.checkAuth()) || !(await Auth.checkAdmin())) return;
+          ProfileHeader.init();
 
-      window.openMissionModal = function(editId = null) {
-        editingMissionId = editId;
-        document.getElementById('mission-modal-title').textContent = editId ? 'Editar Missão' : 'Nova Missão';
-        if (editId) {
-          const mission = missions.find(m => m.id === editId);
-          if (mission) {
-            document.getElementById('mission-name').value = mission.name;
-            document.getElementById('mission-description').value = mission.description || '';
-            document.getElementById('mission-points').value = mission.points;
-          }
-        } else {
-          document.getElementById('mission-name').value = '';
-          document.getElementById('mission-description').value = '';
-          document.getElementById('mission-points').value = '';
-        }
-        document.getElementById('mission-modal').classList.add('active');
-      };
+          let editingMissionId = null;
+          let editingRewardId = null;
+          let editingUserId = null;
+          let currentRejectId = null;
+          let timerInterval = null;
 
-      window.closeMissionModal = function() {
-        document.getElementById('mission-modal').classList.remove('active');
-        editingMissionId = null;
-      };
+          window.showTab = function(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+          };
 
-      window.saveMission = async function() {
-        const name = document.getElementById('mission-name').value.trim();
-        const description = document.getElementById('mission-description').value.trim();
-        const points = parseInt(document.getElementById('mission-points').value);
-
-        if (!name || !points) {
-          Toast.show('Preencha nome e pontos', 'error');
-          return;
-        }
-
-        try {
-          const missionData = { name, description: description || null, points };
-          if (editingMissionId) {
-            await DB.missions.update(editingMissionId, missionData);
-            Toast.show('Missão atualizada com sucesso!', 'success');
-          } else {
-            await DB.missions.create(missionData);
-            Toast.show('Missão criada com sucesso!', 'success');
-          }
-          await loadMissions();
-          closeMissionModal();
-        } catch (error) {
-          console.error('Erro ao salvar missão:', error);
-          Toast.show('Erro ao salvar missão', 'error');
-        }
-      };
-
-      let missions = [];
-      window.loadMissions = async function() {
-        try {
-          missions = await DB.missions.getAll();
-          const tbody = document.getElementById('missions-body');
-          const table = document.getElementById('missions-table');
-          const loading = document.getElementById('missions-loading');
-
-          if (!missions || missions.length === 0) {
-            loading.textContent = 'Nenhuma missão cadastrada';
-            return;
+          async function loadStats() {
+            try {
+              const users = await DB.users.getAll();
+              document.getElementById('total-users').textContent = users.length;
+              
+              const pendingMissions = await DB.missions.getPendingWithDetails();
+              document.getElementById('pending-count').textContent = pendingMissions.length;
+              
+              const totalPoints = users.reduce((sum, u) => sum + (u.points || 0), 0);
+              document.getElementById('total-points').textContent = totalPoints.toLocaleString();
+              
+              try {
+                const missionsToday = await DB.missions.getTodayCount();
+                document.getElementById('missions-today').textContent = missionsToday;
+              } catch (error) {
+                console.error('Erro ao carregar missões hoje:', error);
+                document.getElementById('missions-today').textContent = '0';
+              }
+            } catch (error) {
+              console.error('Erro ao carregar stats:', error);
+            }
           }
 
-          loading.style.display = 'none';
-          table.style.display = 'table';
-          tbody.innerHTML = missions.map(m => `
-            <tr>
-              <td>${m.name}</td>
-              <td>${m.description || '-'}</td>
-              <td>${m.points}</td>
-              <td>
-                <div class="action-btns">
-                  <button class="icon-btn" onclick="openMissionModal(${m.id})" title="Editar">
-                    <svg viewBox="0 0 256 256" fill="currentColor">
-                      <path d="M227.31,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"></path>
-                    </svg>
-                  </button>
-                  <button class="icon-btn danger" onclick="deleteMission(${m.id})" title="Excluir">
-                    <svg viewBox="0 0 256 256" fill="currentColor">
-                      <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
-                    </svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          `).join('');
-        } catch (error) {
-          console.error('Erro ao carregar missões:', error);
-          document.getElementById('missions-loading').textContent = 'Erro ao carregar missões';
-        }
-      };
+          window.openMissionModal = function(editId = null) {
+            editingMissionId = editId;
+            document.getElementById('mission-modal-title').textContent = editId ? 'Editar Missão' : 'Nova Missão';
+            if (editId) {
+              const mission = missions.find(m => m.id === editId);
+              if (mission) {
+                document.getElementById('mission-name').value = mission.name;
+                document.getElementById('mission-description').value = mission.description || '';
+                document.getElementById('mission-points').value = mission.points;
+              }
+            } else {
+              document.getElementById('mission-name').value = '';
+              document.getElementById('mission-description').value = '';
+              document.getElementById('mission-points').value = '';
+            }
+            document.getElementById('mission-modal').classList.add('active');
+          };
 
-      window.showConfirm = function(title, message, onConfirm) {
-        document.getElementById('confirm-title').textContent = title;
-        document.getElementById('confirm-message').textContent = message;
-        document.getElementById('confirm-modal').classList.add('active');
-        
-        const confirmBtn = document.getElementById('confirm-action');
-        const newBtn = confirmBtn.cloneNode(true);
-        confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
-        
-        newBtn.onclick = async function() {
-          await onConfirm();
-          document.getElementById('confirm-modal').classList.remove('active');
-        };
-      };
+          window.closeMissionModal = function() {
+            document.getElementById('mission-modal').classList.remove('active');
+            editingMissionId = null;
+          };
 
-      window.closeConfirmModal = function() {
-        document.getElementById('confirm-modal').classList.remove('active');
-      };
+          window.saveMission = async function() {
+            const name = document.getElementById('mission-name').value.trim();
+            const description = document.getElementById('mission-description').value.trim();
+            const points = parseInt(document.getElementById('mission-points').value);
 
-      window.deleteMission = async function(id) {
-        showConfirm('Excluir missão', 'Tem certeza que deseja excluir esta missão?', async () => {
-          try {
-            await DB.missions.delete(id);
-            Toast.show('Missão excluída com sucesso!', 'success');
-            await loadMissions();
-          } catch (error) {
-            console.error('Erro ao excluir missão:', error);
-            Toast.show('Erro ao excluir missão', 'error');
-          }
-        });
-      };
+            if (!name || !points) {
+              Toast.show('Preencha nome e pontos', 'error');
+              return;
+            }
 
-      window.loadPendingMissions = async function() {
-        try {
-          const missions = await DB.missions.getPendingWithDetails();
-          
-          const tbody = document.getElementById('pending-missions-body');
-          const table = document.getElementById('pending-missions-table');
-          const loading = document.getElementById('pending-missions-loading');
-          const badge = document.getElementById('pending-missions-count');
-          
-          if (badge) {
-            badge.textContent = `${missions.length} pendente${missions.length !== 1 ? 's' : ''}`;
-          }
+            try {
+              const missionData = { name, description: description || null, points };
+              if (editingMissionId) {
+                await DB.missions.update(editingMissionId, missionData);
+                Toast.show('Missão atualizada com sucesso!', 'success');
+              } else {
+                await DB.missions.create(missionData);
+                Toast.show('Missão criada com sucesso!', 'success');
+              }
+              await loadMissions();
+              closeMissionModal();
+            } catch (error) {
+              console.error('Erro ao salvar missão:', error);
+              Toast.show('Erro ao salvar missão', 'error');
+            }
+          };
 
-          if (!missions || missions.length === 0) {
-            loading.textContent = 'Nenhuma missão pendente';
-            loading.style.display = 'block';
-            table.style.display = 'none';
-            return;
-          }
+          let missions = [];
+          window.loadMissions = async function() {
+            try {
+              missions = await DB.missions.getAll();
+              const tbody = document.getElementById('missions-body');
+              const table = document.getElementById('missions-table');
+              const loading = document.getElementById('missions-loading');
 
-          loading.style.display = 'none';
-          table.style.display = 'table';
-          
-          tbody.innerHTML = missions.map(m => `
-            <tr>
-              <td><strong>${m.users?.nick || 'Desconhecido'}</strong></td>
-              <td>${m.missions?.name || 'Missão'}</td>
-              <td>${m.missions?.points || 0} pts</td>
-              <td>
-                ${m.proof_url ? `
-                  <a href="${m.proof_url}" target="_blank" class="proof-link" title="Ver comprovante">
-                    <svg width="24" height="24" viewBox="0 0 256 256" fill="var(--cyan-primary)">
-                      <path d="M216,104v96a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V104a16,16,0,0,1,16-16H80a8,8,0,0,1,0,16H56v96H200V104H176a8,8,0,0,1,0-16h24A16,16,0,0,1,216,104ZM93.66,69.66,120,43.31V128a8,8,0,0,0,16,0V43.31l26.34,26.35a8,8,0,0,0,11.32-11.32l-40-40a8,8,0,0,0-11.32,0l-40,40A8,8,0,0,0,93.66,69.66Z"></path>
-                    </svg>
-                  </a>
-                ` : '-'}
-              </td>
-              <td>${new Date(m.completed_at).toLocaleString('pt-BR')}</td>
-              <td>
-                <div class="action-btns">
-                  <button class="icon-btn success" onclick="approveMission(${m.id})" title="Aprovar">
-                    <svg viewBox="0 0 256 256" fill="currentColor">
-                      <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm45.66-125.66a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,140.69l50.34-50.35A8,8,0,0,1,173.66,90.34Z"></path>
-                    </svg>
-                  </button>
-                  <button class="icon-btn danger" onclick="openRejectModal(${m.id})" title="Rejeitar">
-                    <svg viewBox="0 0 256 256" fill="currentColor">
-                      <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm37.66-133.66a8,8,0,0,1,0,11.32L139.31,128l26.35,26.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35A8,8,0,0,1,165.66,90.34Z"></path>
-                    </svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          `).join('');
-        } catch (error) {
-          console.error('Erro ao carregar missões pendentes:', error);
-          document.getElementById('pending-missions-loading').textContent = 'Erro ao carregar missões';
-        }
-      };
+              if (!missions || missions.length === 0) {
+                loading.textContent = 'Nenhuma missão cadastrada';
+                return;
+              }
 
-      window.approveMission = async function(id) {
-        showConfirm('Aprovar missão', 'Tem certeza que deseja APROVAR esta missão?', async () => {
-          try {
-            const admin = SessionManager.getUser();
-            await DB.missions.approve(id, admin.id);
-            Toast.show('Missão aprovada com sucesso!', 'success');
-            await loadPendingMissions();
-            await loadUsers();
-            await loadStats();
-          } catch (error) {
-            console.error('Erro ao aprovar missão:', error);
-            Toast.show('Erro ao aprovar missão', 'error');
-          }
-        });
-      };
+              loading.style.display = 'none';
+              table.style.display = 'table';
+              tbody.innerHTML = missions.map(m => `
+                <tr>
+                  <td>${m.name}</td>
+                  <td>${m.description || '-'}</td>
+                  <td>${m.points}</td>
+                  <td>
+                    <div class="action-btns">
+                      <button class="icon-btn" onclick="openMissionModal(${m.id})" title="Editar">
+                        <svg viewBox="0 0 256 256" fill="currentColor">
+                          <path d="M227.31,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"></path>
+                        </svg>
+                      </button>
+                      <button class="icon-btn danger" onclick="deleteMission(${m.id})" title="Excluir">
+                        <svg viewBox="0 0 256 256" fill="currentColor">
+                          <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('');
+            } catch (error) {
+              console.error('Erro ao carregar missões:', error);
+              document.getElementById('missions-loading').textContent = 'Erro ao carregar missões';
+            }
+          };
 
-      window.openRejectModal = function(id) {
-        currentRejectId = id;
-        document.getElementById('reject-reason').value = '';
-        document.getElementById('reject-modal').classList.add('active');
-      };
+          window.showConfirm = function(title, message, onConfirm) {
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-message').textContent = message;
+            document.getElementById('confirm-modal').classList.add('active');
+            
+            const confirmBtn = document.getElementById('confirm-action');
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+            
+            newBtn.onclick = async function() {
+              await onConfirm();
+              document.getElementById('confirm-modal').classList.remove('active');
+            };
+          };
 
-      window.closeRejectModal = function() {
-        currentRejectId = null;
-        document.getElementById('reject-modal').classList.remove('active');
-      };
+          window.closeConfirmModal = function() {
+            document.getElementById('confirm-modal').classList.remove('active');
+          };
 
-      window.confirmReject = async function() {
-        const reason = document.getElementById('reject-reason').value.trim();
-        
-        if (!reason) {
-          Toast.show('Digite um motivo para a rejeição', 'error');
-          return;
-        }
-        
-        try {
-          const admin = SessionManager.getUser();
-          await DB.missions.reject(currentRejectId, reason, admin.id);
-          closeRejectModal();
-          Toast.show('Missão rejeitada com sucesso!', 'success');
-          await loadPendingMissions();
-        } catch (error) {
-          console.error('Erro ao rejeitar missão:', error);
-          Toast.show('Erro ao rejeitar missão', 'error');
-        }
-      };
+          window.deleteMission = async function(id) {
+            showConfirm('Excluir missão', 'Tem certeza que deseja excluir esta missão?', async () => {
+              try {
+                await DB.missions.delete(id);
+                Toast.show('Missão excluída com sucesso!', 'success');
+                await loadMissions();
+              } catch (error) {
+                console.error('Erro ao excluir missão:', error);
+                Toast.show('Erro ao excluir missão', 'error');
+              }
+            });
+          };
 
-      window.openRewardModal = function(editId = null) {
-        editingRewardId = editId;
-        if (editId) {
-          const reward = rewards.find(r => r.id === editId);
-          if (reward) {
-            document.getElementById('reward-name').value = reward.name;
-            document.getElementById('reward-description').value = reward.description || '';
-            document.getElementById('reward-category').value = reward.category;
-            document.getElementById('reward-cost').value = reward.cost;
-            document.getElementById('reward-image').value = reward.image_url || '';
-          }
-        } else {
-          document.getElementById('reward-name').value = '';
-          document.getElementById('reward-description').value = '';
-          document.getElementById('reward-category').value = 'diamond';
-          document.getElementById('reward-cost').value = '';
-          document.getElementById('reward-image').value = '';
-        }
-        document.getElementById('reward-modal').classList.add('active');
-      };
+          window.loadPendingMissions = async function() {
+            try {
+              const missions = await DB.missions.getPendingWithDetails();
+              
+              const tbody = document.getElementById('pending-missions-body');
+              const table = document.getElementById('pending-missions-table');
+              const loading = document.getElementById('pending-missions-loading');
+              const badge = document.getElementById('pending-missions-count');
+              
+              if (badge) {
+                badge.textContent = `${missions.length} pendente${missions.length !== 1 ? 's' : ''}`;
+              }
 
-      window.closeRewardModal = function() {
-        document.getElementById('reward-modal').classList.remove('active');
-        editingRewardId = null;
-      };
+              if (!missions || missions.length === 0) {
+                loading.textContent = 'Nenhuma missão pendente';
+                loading.style.display = 'block';
+                table.style.display = 'none';
+                return;
+              }
 
-      let rewards = [];
-      window.saveReward = async function() {
-        const name = document.getElementById('reward-name').value.trim();
-        const description = document.getElementById('reward-description').value.trim();
-        const category = document.getElementById('reward-category').value;
-        const cost = parseInt(document.getElementById('reward-cost').value);
-        const image = document.getElementById('reward-image').value.trim();
-
-        if (!name || !cost) {
-          Toast.show('Preencha nome e custo', 'error');
-          return;
-        }
-
-        try {
-          const rewardData = { name, description: description || null, category, cost, image_url: image };
-          if (editingRewardId) {
-            await DB.rewards.update(editingRewardId, rewardData);
-            Toast.show('Recompensa atualizada com sucesso!', 'success');
-          } else {
-            await DB.rewards.create(rewardData);
-            Toast.show('Recompensa criada com sucesso!', 'success');
-          }
-          await loadRewards();
-          closeRewardModal();
-        } catch (error) {
-          console.error('Erro ao salvar recompensa:', error);
-          Toast.show('Erro ao salvar recompensa', 'error');
-        }
-      };
-
-      window.loadRewards = async function() {
-        try {
-          rewards = await DB.rewards.getAll();
-          const tbody = document.getElementById('rewards-body');
-          const table = document.getElementById('rewards-table');
-          const loading = document.getElementById('rewards-loading');
-
-          if (!rewards || rewards.length === 0) {
-            loading.textContent = 'Nenhuma recompensa encontrada';
-            return;
-          }
-
-          loading.style.display = 'none';
-          table.style.display = 'table';
-          tbody.innerHTML = rewards.map(r => `
-            <tr>
-              <td>${r.name}</td>
-              <td>${r.category}</td>
-              <td>${r.cost} pts</td>
-              <td>${r.image_url ? '✅' : '❌'}</td>
-              <td>
-                <div class="action-btns">
-                  <button class="icon-btn" onclick="openRewardModal(${r.id})" title="Editar">
-                    <svg viewBox="0 0 256 256" fill="currentColor">
-                      <path d="M227.31,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"></path>
-                    </svg>
-                  </button>
-                  <button class="icon-btn danger" onclick="deleteReward(${r.id})" title="Excluir">
-                    <svg viewBox="0 0 256 256" fill="currentColor">
-                      <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
-                    </svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          `).join('');
-        } catch (error) {
-          console.error('Erro ao carregar recompensas:', error);
-          document.getElementById('rewards-loading').textContent = 'Erro ao carregar recompensas';
-        }
-      };
-
-      window.deleteReward = async function(id) {
-        showConfirm('Excluir recompensa', 'Tem certeza que deseja excluir esta recompensa?', async () => {
-          try {
-            await DB.rewards.delete(id);
-            Toast.show('Recompensa excluída com sucesso!', 'success');
-            await loadRewards();
-          } catch (error) {
-            console.error('Erro ao excluir recompensa:', error);
-            Toast.show('Erro ao excluir recompensa', 'error');
-          }
-        });
-      };
-
-      window.loadUsers = async function() {
-        try {
-          const users = await DB.rankings.getFullRanking();
-          const tbody = document.getElementById('users-body');
-          const table = document.getElementById('users-table');
-          const loading = document.getElementById('users-loading');
-
-          if (!users || users.length === 0) {
-            loading.textContent = 'Nenhum usuário encontrado';
-            return;
-          }
-
-          loading.style.display = 'none';
-          table.style.display = 'table';
-          tbody.innerHTML = '';
-
-          for (let i = 0; i < users.length; i++) {
-            const u = users[i];
-            const missions = await DB.missions.getByUser(u.id);
-            tbody.innerHTML += `
-              <tr>
-                <td>#${i + 1}</td>
-                <td>
-                  ${u.nick}
-                  ${u.banned ? '<span class="banned-badge">BANIDO</span>' : ''}
-                  ${u.is_admin ? ' 👑' : ''}
-                </td>
-                <td>${u.points}</td>
-                <td>${missions.length}</td>
-                <td>${u.is_admin ? 'Sim' : 'Não'}</td>
-                <td>
-                  <div class="action-btns">
-                    <button class="icon-btn" onclick="openEditUserModal('${u.id}')" title="Editar">
-                      <svg viewBox="0 0 256 256" fill="currentColor">
-                        <path d="M227.31,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"></path>
-                      </svg>
-                    </button>
-                    ${u.banned ? `
-                      <button class="icon-btn success" onclick="unbanUser('${u.id}')" title="Remover banimento">
+              loading.style.display = 'none';
+              table.style.display = 'table';
+              
+              tbody.innerHTML = missions.map(m => `
+                <tr>
+                  <td><strong>${m.users?.nick || 'Desconhecido'}</strong></td>
+                  <td>${m.missions?.name || 'Missão'}</td>
+                  <td>${m.missions?.points || 0} pts</td>
+                  <td>
+                    ${m.proof_url ? `
+                      <a href="${m.proof_url}" target="_blank" class="proof-link" title="Ver comprovante">
+                        <svg width="24" height="24" viewBox="0 0 256 256" fill="var(--cyan-primary)">
+                          <path d="M216,104v96a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V104a16,16,0,0,1,16-16H80a8,8,0,0,1,0,16H56v96H200V104H176a8,8,0,0,1,0-16h24A16,16,0,0,1,216,104ZM93.66,69.66,120,43.31V128a8,8,0,0,0,16,0V43.31l26.34,26.35a8,8,0,0,0,11.32-11.32l-40-40a8,8,0,0,0-11.32,0l-40,40A8,8,0,0,0,93.66,69.66Z"></path>
+                        </svg>
+                      </a>
+                    ` : '-'}
+                  </td>
+                  <td>${new Date(m.completed_at).toLocaleString('pt-BR')}</td>
+                  <td>
+                    <div class="action-btns">
+                      <button class="icon-btn success" onclick="approveMission(${m.id})" title="Aprovar">
                         <svg viewBox="0 0 256 256" fill="currentColor">
                           <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm45.66-125.66a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,140.69l50.34-50.35A8,8,0,0,1,173.66,90.34Z"></path>
                         </svg>
                       </button>
-                    ` : `
-                      <button class="icon-btn danger" onclick="banUser('${u.id}')" title="Banir">
+                      <button class="icon-btn danger" onclick="openRejectModal(${m.id})" title="Rejeitar">
                         <svg viewBox="0 0 256 256" fill="currentColor">
                           <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm37.66-133.66a8,8,0,0,1,0,11.32L139.31,128l26.35,26.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35A8,8,0,0,1,165.66,90.34Z"></path>
                         </svg>
                       </button>
-                    `}
-                  </div>
-                </td>
-              </tr>
-            `;
-          }
-        } catch (error) {
-          console.error('Erro ao carregar usuários:', error);
-          document.getElementById('users-loading').textContent = 'Erro ao carregar usuários';
-        }
-      };
-
-      window.openEditUserModal = async function(userId) {
-        editingUserId = userId;
-        const user = (await DB.users.getAll()).find(u => u.id === userId);
-        if (user) {
-          document.getElementById('edit-user-nick').value = user.nick;
-          document.getElementById('edit-user-points').value = user.points;
-          document.getElementById('edit-user-reason').value = '';
-          document.getElementById('edit-user-modal').classList.add('active');
-        }
-      };
-
-      window.closeEditUserModal = function() {
-        editingUserId = null;
-        document.getElementById('edit-user-modal').classList.remove('active');
-      };
-
-      window.saveUserEdit = async function() {
-        const points = parseInt(document.getElementById('edit-user-points').value);
-        const reason = document.getElementById('edit-user-reason').value.trim();
-
-        if (isNaN(points) || points < 0) {
-          Toast.show('Digite uma quantidade válida de pontos', 'error');
-          return;
-        }
-
-        if (!reason) {
-          Toast.show('Digite o motivo da alteração', 'error');
-          return;
-        }
-
-        try {
-          await DB.users.update(editingUserId, { points });
-          Toast.show(`Pontos alterados para ${points}`, 'success');
-          closeEditUserModal();
-          await loadUsers();
-          await loadStats();
-        } catch (error) {
-          console.error('Erro ao editar usuário:', error);
-          Toast.show('Erro ao editar usuário', 'error');
-        }
-      };
-
-      window.banUser = async function(userId) {
-        showConfirm('Banir usuário', 'Tem certeza que deseja banir este usuário?', async () => {
-          try {
-            await DB.users.ban(userId);
-            Toast.show('Usuário banido com sucesso!', 'success');
-            await loadUsers();
-          } catch (error) {
-            console.error('Erro ao banir usuário:', error);
-            Toast.show('Erro ao banir usuário', 'error');
-          }
-        });
-      };
-
-      window.unbanUser = async function(userId) {
-        showConfirm('Remover banimento', 'Remover banimento deste usuário?', async () => {
-          try {
-            await DB.users.unban(userId);
-            Toast.show('Banimento removido com sucesso!', 'success');
-            await loadUsers();
-          } catch (error) {
-            console.error('Erro ao remover banimento:', error);
-            Toast.show('Erro ao remover banimento', 'error');
-          }
-        });
-      };
-
-      window.loadQueue = async function() {
-        try {
-          const store = await DB.store.getStatus();
-          const queue = await DB.redemptions.getQueue();
-          const pendingRedemptions = await DB.redemptions.getPending();
-          
-          const tbody = document.getElementById('queue-body');
-          const table = document.getElementById('queue-table');
-          const loading = document.getElementById('queue-loading');
-          const currentBox = document.getElementById('current-turn-box');
-          const currentNick = document.getElementById('current-turn-nick');
-          const skipBtn = document.getElementById('skip-turn-btn');
-          const turnInfo = document.getElementById('current-turn-info');
-          const currentTurn = await DB.redemptions.getCurrentTurn();
-
-          if (queue.length === 0) {
-            loading.innerHTML = '<div class="empty-state">Nenhum usuário na fila</div>';
-            loading.style.display = 'block';
-            table.style.display = 'none';
-            currentBox.style.display = 'none';
-            turnInfo.innerHTML = 'Fila vazia';
-            if (skipBtn) skipBtn.disabled = true;
-            return;
-          }
-
-          loading.style.display = 'none';
-          table.style.display = 'table';
-
-          if (store.is_open) {
-            if (currentTurn) {
-              currentNick.textContent = currentTurn.nick;
-              currentBox.style.display = 'flex';
-              if (skipBtn) skipBtn.disabled = false;
-              turnInfo.innerHTML = `Vez: ${currentTurn.nick}`;
-              
-              if (timerInterval) clearInterval(timerInterval);
-              startTimer(store.turn_start_time);
-            } else {
-              currentBox.style.display = 'none';
-              if (skipBtn) skipBtn.disabled = true;
-              turnInfo.innerHTML = 'Aguardando próximo turno';
+                    </div>
+                  </td>
+                </tr>
+              `).join('');
+            } catch (error) {
+              console.error('Erro ao carregar missões pendentes:', error);
+              document.getElementById('pending-missions-loading').textContent = 'Erro ao carregar missões';
             }
-          } else {
-            currentBox.style.display = 'none';
-            if (skipBtn) skipBtn.disabled = true;
-            turnInfo.innerHTML = '🔴 Loja fechada';
-          }
+          };
 
-          tbody.innerHTML = queue.map((user, index) => {
-            const isCurrent = currentTurn && currentTurn.id === user.id;
-            const userPending = pendingRedemptions.filter(r => r.user_id === user.id).length;
-            return `
-              <tr style="${isCurrent ? 'background-color: rgba(117, 175, 202, 0.1); font-weight: bold;' : ''}">
-                <td>${index + 1}° ${isCurrent ? '(ATUAL)' : ''}</td>
-                <td>${user.nick}</td>
-                <td>${user.points}</td>
-                <td>${userPending} resgate(s)</td>
-                <td>${isCurrent ? 'Jogando' : 'Aguardando'}</td>
-              </tr>
-            `;
-          }).join('');
-        } catch (error) {
-          console.error('Erro ao carregar fila:', error);
-          document.getElementById('queue-loading').innerHTML = '<div class="empty-state">Erro ao carregar fila</div>';
-        }
-      };
+          window.approveMission = async function(id) {
+            showConfirm('Aprovar missão', 'Tem certeza que deseja APROVAR esta missão?', async () => {
+              try {
+                const admin = SessionManager.getUser();
+                await DB.missions.approve(id, admin.id);
+                Toast.show('Missão aprovada com sucesso!', 'success');
+                await loadPendingMissions();
+                await loadUsers();
+                await loadStats();
+              } catch (error) {
+                console.error('Erro ao aprovar missão:', error);
+                Toast.show('Erro ao aprovar missão', 'error');
+              }
+            });
+          };
 
-      function startTimer(startTime) {
-        if (timerInterval) clearInterval(timerInterval);
-        
-        timerInterval = setInterval(async () => {
-          try {
-            const remaining = await DB.store.getRemainingTime();
-            const mins = Math.floor(remaining / 60);
-            const secs = remaining % 60;
-            const timerEl = document.getElementById('turn-timer');
-            if (timerEl) {
-              timerEl.textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+          window.openRejectModal = function(id) {
+            currentRejectId = id;
+            document.getElementById('reject-reason').value = '';
+            document.getElementById('reject-modal').classList.add('active');
+          };
+
+          window.closeRejectModal = function() {
+            currentRejectId = null;
+            document.getElementById('reject-modal').classList.remove('active');
+          };
+
+          window.confirmReject = async function() {
+            const reason = document.getElementById('reject-reason').value.trim();
+            
+            if (!reason) {
+              Toast.show('Digite um motivo para a rejeição', 'error');
+              return;
             }
             
-            if (remaining <= 0) {
-              clearInterval(timerInterval);
-              await DB.redemptions.processNextTurn();
-              loadQueue();
+            try {
+              const admin = SessionManager.getUser();
+              await DB.missions.reject(currentRejectId, reason, admin.id);
+              closeRejectModal();
+              Toast.show('Missão rejeitada com sucesso!', 'success');
+              await loadPendingMissions();
+            } catch (error) {
+              console.error('Erro ao rejeitar missão:', error);
+              Toast.show('Erro ao rejeitar missão', 'error');
             }
-          } catch (error) {
-            console.error('Erro no timer:', error);
-          }
-        }, 1000);
-      }
+          };
 
-      window.skipTurn = async function() {
-        showConfirm('Pular vez', 'Pular a vez do usuário atual?', async () => {
-          try {
-            await DB.redemptions.processNextTurn();
-            Toast.show('Vez pulada com sucesso!', 'success');
-            loadQueue();
-          } catch (error) {
-            console.error('Erro ao pular vez:', error);
-            Toast.show('Erro ao pular vez', 'error');
-          }
-        });
-      };
-
-      window.loadStoreSettings = async function() {
-        try {
-          const status = await DB.store.getStatus();
-          document.getElementById('store-status').checked = status.is_open;
-          if (status.next_open_date) {
-            document.getElementById('next-opening').value = new Date(status.next_open_date).toISOString().slice(0,16);
-          }
-        } catch (error) {
-          console.error('Erro ao carregar configurações:', error);
-        }
-      };
-
-      window.toggleStoreStatus = function() {};
-
-      window.saveStoreSettings = async function() {
-        try {
-          const isOpen = document.getElementById('store-status').checked;
-          let nextOpening = document.getElementById('next-opening').value;
-          
-          if (!nextOpening) {
-            const nextDate = await DB.store.calculateNextOpenDate();
-            nextOpening = nextDate.slice(0,16);
-          }
-          
-          await DB.store.setStatus(isOpen, nextOpening || null);
-          
-          if (isOpen) {
-            await DB.redemptions.processNextTurn();
-            Toast.show('✅ Loja aberta! Fecha automaticamente dia 10.', 'success');
-          } else {
-            if (nextOpening) {
-              const date = new Date(nextOpening).toLocaleDateString('pt-BR');
-              Toast.show(`🔴 Loja fechada. Próxima abertura: ${date}`, 'success');
+          window.openRewardModal = function(editId = null) {
+            editingRewardId = editId;
+            if (editId) {
+              const reward = rewards.find(r => r.id === editId);
+              if (reward) {
+                document.getElementById('reward-name').value = reward.name;
+                document.getElementById('reward-description').value = reward.description || '';
+                document.getElementById('reward-category').value = reward.category;
+                document.getElementById('reward-cost').value = reward.cost;
+                document.getElementById('reward-image').value = reward.image_url || '';
+              }
             } else {
-              Toast.show('🔴 Loja fechada. Configurações salvas!', 'success');
+              document.getElementById('reward-name').value = '';
+              document.getElementById('reward-description').value = '';
+              document.getElementById('reward-category').value = 'diamond';
+              document.getElementById('reward-cost').value = '';
+              document.getElementById('reward-image').value = '';
             }
+            document.getElementById('reward-modal').classList.add('active');
+          };
+
+          window.closeRewardModal = function() {
+            document.getElementById('reward-modal').classList.remove('active');
+            editingRewardId = null;
+          };
+
+          let rewards = [];
+          window.saveReward = async function() {
+            const name = document.getElementById('reward-name').value.trim();
+            const description = document.getElementById('reward-description').value.trim();
+            const category = document.getElementById('reward-category').value;
+            const cost = parseInt(document.getElementById('reward-cost').value);
+            const image = document.getElementById('reward-image').value.trim();
+
+            if (!name || !cost) {
+              Toast.show('Preencha nome e custo', 'error');
+              return;
+            }
+
+            try {
+              const rewardData = { name, description: description || null, category, cost, image_url: image };
+              if (editingRewardId) {
+                await DB.rewards.update(editingRewardId, rewardData);
+                Toast.show('Recompensa atualizada com sucesso!', 'success');
+              } else {
+                await DB.rewards.create(rewardData);
+                Toast.show('Recompensa criada com sucesso!', 'success');
+              }
+              await loadRewards();
+              closeRewardModal();
+            } catch (error) {
+              console.error('Erro ao salvar recompensa:', error);
+              Toast.show('Erro ao salvar recompensa', 'error');
+            }
+          };
+
+          window.loadRewards = async function() {
+            try {
+              rewards = await DB.rewards.getAll();
+              const tbody = document.getElementById('rewards-body');
+              const table = document.getElementById('rewards-table');
+              const loading = document.getElementById('rewards-loading');
+
+              if (!rewards || rewards.length === 0) {
+                loading.textContent = 'Nenhuma recompensa encontrada';
+                return;
+              }
+
+              loading.style.display = 'none';
+              table.style.display = 'table';
+              tbody.innerHTML = rewards.map(r => `
+                <tr>
+                  <td>${r.name}</td>
+                  <td>${r.category}</td>
+                  <td>${r.cost} pts</td>
+                  <td>${r.image_url ? '✅' : '❌'}</td>
+                  <td>
+                    <div class="action-btns">
+                      <button class="icon-btn" onclick="openRewardModal(${r.id})" title="Editar">
+                        <svg viewBox="0 0 256 256" fill="currentColor">
+                          <path d="M227.31,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"></path>
+                        </svg>
+                      </button>
+                      <button class="icon-btn danger" onclick="deleteReward(${r.id})" title="Excluir">
+                        <svg viewBox="0 0 256 256" fill="currentColor">
+                          <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('');
+            } catch (error) {
+              console.error('Erro ao carregar recompensas:', error);
+              document.getElementById('rewards-loading').textContent = 'Erro ao carregar recompensas';
+            }
+          };
+
+          window.deleteReward = async function(id) {
+            showConfirm('Excluir recompensa', 'Tem certeza que deseja excluir esta recompensa?', async () => {
+              try {
+                await DB.rewards.delete(id);
+                Toast.show('Recompensa excluída com sucesso!', 'success');
+                await loadRewards();
+              } catch (error) {
+                console.error('Erro ao excluir recompensa:', error);
+                Toast.show('Erro ao excluir recompensa', 'error');
+              }
+            });
+          };
+
+          window.loadUsers = async function() {
+            try {
+              const users = await DB.rankings.getFullRanking();
+              const tbody = document.getElementById('users-body');
+              const table = document.getElementById('users-table');
+              const loading = document.getElementById('users-loading');
+
+              if (!users || users.length === 0) {
+                loading.textContent = 'Nenhum usuário encontrado';
+                return;
+              }
+
+              loading.style.display = 'none';
+              table.style.display = 'table';
+              tbody.innerHTML = '';
+
+              for (let i = 0; i < users.length; i++) {
+                const u = users[i];
+                const missions = await DB.missions.getByUser(u.id);
+                tbody.innerHTML += `
+                  <tr>
+                    <td>#${i + 1}</td>
+                    <td>
+                      ${u.nick}
+                      ${u.banned ? '<span class="banned-badge">BANIDO</span>' : ''}
+                      ${u.is_admin ? ' 👑' : ''}
+                    </td>
+                    <td>${u.points}</td>
+                    <td>${missions.length}</td>
+                    <td>${u.is_admin ? 'Sim' : 'Não'}</td>
+                    <td>
+                      <div class="action-btns">
+                        <button class="icon-btn" onclick="openEditUserModal('${u.id}')" title="Editar">
+                          <svg viewBox="0 0 256 256" fill="currentColor">
+                            <path d="M227.31,73.37,182.63,28.69a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"></path>
+                          </svg>
+                        </button>
+                        ${u.banned ? `
+                          <button class="icon-btn success" onclick="unbanUser('${u.id}')" title="Remover banimento">
+                            <svg viewBox="0 0 256 256" fill="currentColor">
+                              <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm45.66-125.66a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,140.69l50.34-50.35A8,8,0,0,1,173.66,90.34Z"></path>
+                            </svg>
+                          </button>
+                        ` : `
+                          <button class="icon-btn danger" onclick="banUser('${u.id}')" title="Banir">
+                            <svg viewBox="0 0 256 256" fill="currentColor">
+                              <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm37.66-133.66a8,8,0,0,1,0,11.32L139.31,128l26.35,26.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35A8,8,0,0,1,165.66,90.34Z"></path>
+                            </svg>
+                          </button>
+                        `}
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }
+            } catch (error) {
+              console.error('Erro ao carregar usuários:', error);
+              document.getElementById('users-loading').textContent = 'Erro ao carregar usuários';
+            }
+          };
+
+          window.openEditUserModal = async function(userId) {
+            editingUserId = userId;
+            const user = (await DB.users.getAll()).find(u => u.id === userId);
+            if (user) {
+              document.getElementById('edit-user-nick').value = user.nick;
+              document.getElementById('edit-user-points').value = user.points;
+              document.getElementById('edit-user-reason').value = '';
+              document.getElementById('edit-user-modal').classList.add('active');
+            }
+          };
+
+          window.closeEditUserModal = function() {
+            editingUserId = null;
+            document.getElementById('edit-user-modal').classList.remove('active');
+          };
+
+          window.saveUserEdit = async function() {
+            const points = parseInt(document.getElementById('edit-user-points').value);
+            const reason = document.getElementById('edit-user-reason').value.trim();
+
+            if (isNaN(points) || points < 0) {
+              Toast.show('Digite uma quantidade válida de pontos', 'error');
+              return;
+            }
+
+            if (!reason) {
+              Toast.show('Digite o motivo da alteração', 'error');
+              return;
+            }
+
+            try {
+              await DB.users.update(editingUserId, { points });
+              Toast.show(`Pontos alterados para ${points}`, 'success');
+              closeEditUserModal();
+              await loadUsers();
+              await loadStats();
+            } catch (error) {
+              console.error('Erro ao editar usuário:', error);
+              Toast.show('Erro ao editar usuário', 'error');
+            }
+          };
+
+          window.banUser = async function(userId) {
+            showConfirm('Banir usuário', 'Tem certeza que deseja banir este usuário?', async () => {
+              try {
+                await DB.users.ban(userId);
+                Toast.show('Usuário banido com sucesso!', 'success');
+                await loadUsers();
+              } catch (error) {
+                console.error('Erro ao banir usuário:', error);
+                Toast.show('Erro ao banir usuário', 'error');
+              }
+            });
+          };
+
+          window.unbanUser = async function(userId) {
+            showConfirm('Remover banimento', 'Remover banimento deste usuário?', async () => {
+              try {
+                await DB.users.unban(userId);
+                Toast.show('Banimento removido com sucesso!', 'success');
+                await loadUsers();
+              } catch (error) {
+                console.error('Erro ao remover banimento:', error);
+                Toast.show('Erro ao remover banimento', 'error');
+              }
+            });
+          };
+
+          window.loadQueue = async function() {
+            try {
+              const store = await DB.store.getStatus();
+              const queue = await DB.redemptions.getQueue();
+              const pendingRedemptions = await DB.redemptions.getPending();
+              
+              const tbody = document.getElementById('queue-body');
+              const table = document.getElementById('queue-table');
+              const loading = document.getElementById('queue-loading');
+              const currentBox = document.getElementById('current-turn-box');
+              const currentNick = document.getElementById('current-turn-nick');
+              const skipBtn = document.getElementById('skip-turn-btn');
+              const turnInfo = document.getElementById('current-turn-info');
+              const currentTurn = await DB.redemptions.getCurrentTurn();
+
+              if (queue.length === 0) {
+                loading.innerHTML = '<div class="empty-state">Nenhum usuário na fila</div>';
+                loading.style.display = 'block';
+                table.style.display = 'none';
+                currentBox.style.display = 'none';
+                turnInfo.innerHTML = 'Fila vazia';
+                if (skipBtn) skipBtn.disabled = true;
+                return;
+              }
+
+              loading.style.display = 'none';
+              table.style.display = 'table';
+
+              if (store.is_open) {
+                if (currentTurn) {
+                  currentNick.textContent = currentTurn.nick;
+                  currentBox.style.display = 'flex';
+                  if (skipBtn) skipBtn.disabled = false;
+                  turnInfo.innerHTML = `Vez: ${currentTurn.nick}`;
+                  
+                  if (timerInterval) clearInterval(timerInterval);
+                  startTimer(store.turn_start_time);
+                } else {
+                  currentBox.style.display = 'none';
+                  if (skipBtn) skipBtn.disabled = true;
+                  turnInfo.innerHTML = 'Aguardando próximo turno';
+                }
+              } else {
+                currentBox.style.display = 'none';
+                if (skipBtn) skipBtn.disabled = true;
+                turnInfo.innerHTML = '🔴 Loja fechada';
+              }
+
+              tbody.innerHTML = queue.map((user, index) => {
+                const isCurrent = currentTurn && currentTurn.id === user.id;
+                const userPending = pendingRedemptions.filter(r => r.user_id === user.id).length;
+                return `
+                  <tr style="${isCurrent ? 'background-color: rgba(117, 175, 202, 0.1); font-weight: bold;' : ''}">
+                    <td>${index + 1}° ${isCurrent ? '(ATUAL)' : ''}</td>
+                    <td>${user.nick}</td>
+                    <td>${user.points}</td>
+                    <td>${userPending} resgate(s)</td>
+                    <td>${isCurrent ? 'Jogando' : 'Aguardando'}</td>
+                  </tr>
+                `;
+              }).join('');
+            } catch (error) {
+              console.error('Erro ao carregar fila:', error);
+              document.getElementById('queue-loading').innerHTML = '<div class="empty-state">Erro ao carregar fila</div>';
+            }
+          };
+
+          function startTimer(startTime) {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(async () => {
+              try {
+                const remaining = await DB.store.getRemainingTime();
+                const mins = Math.floor(remaining / 60);
+                const secs = remaining % 60;
+                const timerEl = document.getElementById('turn-timer');
+                if (timerEl) {
+                  timerEl.textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+                }
+                
+                if (remaining <= 0) {
+                  clearInterval(timerInterval);
+                  await DB.redemptions.processNextTurn();
+                  loadQueue();
+                }
+              } catch (error) {
+                console.error('Erro no timer:', error);
+              }
+            }, 1000);
           }
-          
-          loadQueue();
-        } catch (error) {
-          console.error('Erro ao salvar configurações:', error);
-          Toast.show('Erro ao salvar configurações', 'error');
-        }
-      };
 
-      await loadStats();
-      await loadMissions();
-      await loadRewards();
-      await loadUsers();
-      await loadQueue();
-      await loadStoreSettings();
-      await loadPendingMissions();
+          window.skipTurn = async function() {
+            showConfirm('Pular vez', 'Pular a vez do usuário atual?', async () => {
+              try {
+                await DB.redemptions.processNextTurn();
+                Toast.show('Vez pulada com sucesso!', 'success');
+                loadQueue();
+              } catch (error) {
+                console.error('Erro ao pular vez:', error);
+                Toast.show('Erro ao pular vez', 'error');
+              }
+            });
+          };
 
-      setInterval(async () => {
-        await loadStats();
-        await loadQueue();
-        await DB.store.checkAutoClose();
-        await DB.store.checkAndOpenNext();
-      }, 30000);
-    })();
+          window.loadStoreSettings = async function() {
+            try {
+              const status = await DB.store.getStatus();
+              document.getElementById('store-status').checked = status.is_open;
+              if (status.next_open_date) {
+                document.getElementById('next-opening').value = new Date(status.next_open_date).toISOString().slice(0,16);
+              }
+            } catch (error) {
+              console.error('Erro ao carregar configurações:', error);
+            }
+          };
+
+          window.toggleStoreStatus = function() {};
+
+          window.saveStoreSettings = async function() {
+            try {
+              const isOpen = document.getElementById('store-status').checked;
+              let nextOpening = document.getElementById('next-opening').value;
+              
+              if (!nextOpening) {
+                const nextDate = await DB.store.calculateNextOpenDate();
+                nextOpening = nextDate.slice(0,16);
+              }
+              
+              await DB.store.setStatus(isOpen, nextOpening || null);
+              
+              if (isOpen) {
+                await DB.redemptions.processNextTurn();
+                Toast.show('✅ Loja aberta! Fecha automaticamente dia 10.', 'success');
+              } else {
+                if (nextOpening) {
+                  const date = new Date(nextOpening).toLocaleDateString('pt-BR');
+                  Toast.show(`🔴 Loja fechada. Próxima abertura: ${date}`, 'success');
+                } else {
+                  Toast.show('🔴 Loja fechada. Configurações salvas!', 'success');
+                }
+              }
+              
+              loadQueue();
+            } catch (error) {
+              console.error('Erro ao salvar configurações:', error);
+              Toast.show('Erro ao salvar configurações', 'error');
+            }
+          };
+
+          await loadStats();
+          await loadMissions();
+          await loadRewards();
+          await loadUsers();
+          await loadQueue();
+          await loadStoreSettings();
+          await loadPendingMissions();
+
+          setInterval(async () => {
+            await loadStats();
+            await loadQueue();
+            await DB.store.checkAutoClose();
+            await DB.store.checkAndOpenNext();
+          }, 30000);
+        })();
+      }
 
     document.addEventListener('DOMContentLoaded', function() {
       const menuToggle = document.getElementById('menuToggle');

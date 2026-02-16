@@ -1047,6 +1047,7 @@
         display: block;
         overflow-x: auto;
         white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
       }
 
       .data-table th,
@@ -1334,322 +1335,333 @@
   <script src="js/auth.js"></script>
   <script src="js/profile-header.js"></script>
   <script>
-    (async function() {
-      if (!(await Auth.checkAuth())) return;
-      
-      ProfileHeader.init();
-
-      const user = SessionManager.getUser();
-      let currentPoints = user.points;
-      let storeOpen = false;
-      let timerInterval = null;
-
-      const categoryImages = {
-        diamond: 'https://i.imgur.com/CfUL0Y2.png',
-        gold: 'https://i.imgur.com/mrX2SFE.png',
-        silver: 'https://i.imgur.com/gncsj9O.png',
-        bronze: 'https://i.imgur.com/dtxKLpc.png'
-      };
-
-      function updateProgressMessage(points) {
-        const messageEl = document.getElementById('progress-message');
-        
-        if (points >= 100) {
-          messageEl.innerHTML = '<strong>Diamante!</strong> Você pode resgatar qualquer recompensa!';
-        } else if (points >= 70) {
-          const missing = 100 - points;
-          messageEl.innerHTML = `Faltam <strong>${missing} pontos</strong> para Diamante`;
-        } else if (points >= 50) {
-          const missing = 70 - points;
-          messageEl.innerHTML = `Faltam <strong>${missing} pontos</strong> para Ouro`;
-        } else if (points >= 20) {
-          const missing = 50 - points;
-          messageEl.innerHTML = `Faltam <strong>${missing} pontos</strong> para Prata`;
-        } else {
-          const missing = 20 - points;
-          messageEl.innerHTML = `Faltam <strong>${missing} pontos</strong> para Bronze`;
-        }
+    (function() {
+      if (!SessionManager.isAuthenticated()) {
+        window.location.href = 'index.html';
       }
-
-      function startTimer() {
-        if (timerInterval) clearInterval(timerInterval);
+    })();
+  </script>
+  <script>
+    if (!SessionManager.isAuthenticated()) {
+        window.location.replace('index.html');
+      } else {
+      (async function() {
+        if (!(await Auth.checkAuth())) return;
         
-        timerInterval = setInterval(async () => {
-          try {
-            const remaining = await DB.store.getRemainingTime();
-            const mins = Math.floor(remaining / 60);
-            const secs = remaining % 60;
-            const timerEl = document.getElementById('turn-timer');
-            if (timerEl) {
-              timerEl.textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
-            }
-            
-            if (remaining <= 0) {
-              clearInterval(timerInterval);
-              await DB.redemptions.processNextTurn();
-              await updateStoreAndQueue();
-            }
-          } catch (error) {
-            console.error('Erro no timer:', error);
-          }
-        }, 1000);
-      }
+        ProfileHeader.init();
 
-      async function loadRewards() {
-        try {
-          const rewards = await DB.rewards.getAll();
-          const container = document.getElementById('rewards-container');
+        const user = SessionManager.getUser();
+        let currentPoints = user.points;
+        let storeOpen = false;
+        let timerInterval = null;
+
+        const categoryImages = {
+          diamond: 'https://i.imgur.com/CfUL0Y2.png',
+          gold: 'https://i.imgur.com/mrX2SFE.png',
+          silver: 'https://i.imgur.com/gncsj9O.png',
+          bronze: 'https://i.imgur.com/dtxKLpc.png'
+        };
+
+        function updateProgressMessage(points) {
+          const messageEl = document.getElementById('progress-message');
           
-          if (!rewards || rewards.length === 0) {
-            container.innerHTML = '<div class="loading">Nenhuma recompensa disponível</div>';
+          if (points >= 100) {
+            messageEl.innerHTML = '<strong>Diamante!</strong> Você pode resgatar qualquer recompensa!';
+          } else if (points >= 70) {
+            const missing = 100 - points;
+            messageEl.innerHTML = `Faltam <strong>${missing} pontos</strong> para Diamante`;
+          } else if (points >= 50) {
+            const missing = 70 - points;
+            messageEl.innerHTML = `Faltam <strong>${missing} pontos</strong> para Ouro`;
+          } else if (points >= 20) {
+            const missing = 50 - points;
+            messageEl.innerHTML = `Faltam <strong>${missing} pontos</strong> para Prata`;
+          } else {
+            const missing = 20 - points;
+            messageEl.innerHTML = `Faltam <strong>${missing} pontos</strong> para Bronze`;
+          }
+        }
+
+        function startTimer() {
+          if (timerInterval) clearInterval(timerInterval);
+          
+          timerInterval = setInterval(async () => {
+            try {
+              const remaining = await DB.store.getRemainingTime();
+              const mins = Math.floor(remaining / 60);
+              const secs = remaining % 60;
+              const timerEl = document.getElementById('turn-timer');
+              if (timerEl) {
+                timerEl.textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+              }
+              
+              if (remaining <= 0) {
+                clearInterval(timerInterval);
+                await DB.redemptions.processNextTurn();
+                await updateStoreAndQueue();
+              }
+            } catch (error) {
+              console.error('Erro no timer:', error);
+            }
+          }, 1000);
+        }
+
+        async function loadRewards() {
+          try {
+            const rewards = await DB.rewards.getAll();
+            const container = document.getElementById('rewards-container');
+            
+            if (!rewards || rewards.length === 0) {
+              container.innerHTML = '<div class="loading">Nenhuma recompensa disponível</div>';
+              return;
+            }
+
+            const groupedRewards = {
+              diamond: [],
+              gold: [],
+              silver: [],
+              bronze: []
+            };
+
+            rewards.forEach(reward => {
+              if (groupedRewards[reward.category]) {
+                groupedRewards[reward.category].push(reward);
+              }
+            });
+
+            let html = '';
+
+            for (const [category, catRewards] of Object.entries(groupedRewards)) {
+              if (catRewards.length === 0) continue;
+
+              let categoryName = '';
+              let minPoints = 0;
+              
+              switch(category) {
+                case 'diamond':
+                  categoryName = 'Diamante';
+                  minPoints = 100;
+                  break;
+                case 'gold':
+                  categoryName = 'Ouro';
+                  minPoints = 70;
+                  break;
+                case 'silver':
+                  categoryName = 'Prata';
+                  minPoints = 50;
+                  break;
+                case 'bronze':
+                  categoryName = 'Bronze';
+                  minPoints = 20;
+                  break;
+              }
+
+              html += `
+                <div class="category-section">
+                  <div class="category-header">
+                    <div class="category-badge">
+                      <img src="${categoryImages[category]}" alt="${categoryName}">
+                    </div>
+                    <div class="category-title">
+                      <h2>${categoryName}</h2>
+                      <span>a partir de ${minPoints} pontos</span>
+                    </div>
+                  </div>
+                  <div class="rewards-grid">
+              `;
+
+              catRewards.forEach(reward => {
+                const canAfford = currentPoints >= reward.cost;
+                const canRedeem = storeOpen && canAfford;
+                
+                html += `
+                  <div class="reward-card ${!canAfford ? 'locked' : ''} ${!storeOpen ? 'disabled' : ''}">
+                    <div class="reward-icon">
+                      ${reward.image_url 
+                        ? `<img src="${reward.image_url}" alt="${reward.name}">` 
+                        : `<svg viewBox="0 0 256 256" fill="currentColor">
+                            <path d="M216,72H178.83L200.3,35.5a8,8,0,0,0-13.7-8.27L164.41,64H91.59L69.4,27.23a8,8,0,1,0-13.7,8.27L77.17,72H40A16,16,0,0,0,24,88V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V88A16,16,0,0,0,216,72Z"></path>
+                          </svg>`
+                      }
+                    </div>
+                    <div class="reward-info">
+                      <h3>${reward.name}</h3>
+                      <p>${reward.description || 'Recompensa exclusiva'}</p>
+                    </div>
+                    <div class="reward-footer">
+                      <div class="reward-cost">
+                        <svg viewBox="0 0 256 256" fill="currentColor">
+                          <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H136v48a8,8,0,0,1-16,0V136H72a8,8,0,0,1,0-16h32V88a8,8,0,0,1,16,0v32h32A8,8,0,0,1,192,128Z"></path>
+                        </svg>
+                        ${reward.cost}
+                      </div>
+                      <button class="btn ${canRedeem ? 'btn-primary' : 'btn-locked'}" 
+                              onclick="purchase('${reward.id}', '${reward.name.replace(/'/g, "\\'")}', ${reward.cost})"
+                              ${!canRedeem ? 'disabled' : ''}>
+                        ${!storeOpen ? 'Loja fechada' : !canAfford ? 'Pontos insuficientes' : 'Resgatar'}
+                      </button>
+                    </div>
+                  </div>
+                `;
+              });
+
+              html += `</div></div>`;
+            }
+
+            container.innerHTML = html;
+
+          } catch (error) {
+            console.error('Erro ao carregar recompensas:', error);
+            document.getElementById('rewards-container').innerHTML = 
+              '<div class="loading">Erro ao carregar recompensas</div>';
+          }
+        }
+
+        window.purchase = async function(id, name, cost) {
+          if (!storeOpen) {
+            Toast.show('A loja está fechada no momento', 'error');
             return;
           }
 
-          const groupedRewards = {
-            diamond: [],
-            gold: [],
-            silver: [],
-            bronze: []
-          };
-
-          rewards.forEach(reward => {
-            if (groupedRewards[reward.category]) {
-              groupedRewards[reward.category].push(reward);
-            }
-          });
-
-          let html = '';
-
-          for (const [category, catRewards] of Object.entries(groupedRewards)) {
-            if (catRewards.length === 0) continue;
-
-            let categoryName = '';
-            let minPoints = 0;
-            
-            switch(category) {
-              case 'diamond':
-                categoryName = 'Diamante';
-                minPoints = 100;
-                break;
-              case 'gold':
-                categoryName = 'Ouro';
-                minPoints = 70;
-                break;
-              case 'silver':
-                categoryName = 'Prata';
-                minPoints = 50;
-                break;
-              case 'bronze':
-                categoryName = 'Bronze';
-                minPoints = 20;
-                break;
-            }
-
-            html += `
-              <div class="category-section">
-                <div class="category-header">
-                  <div class="category-badge">
-                    <img src="${categoryImages[category]}" alt="${categoryName}">
-                  </div>
-                  <div class="category-title">
-                    <h2>${categoryName}</h2>
-                    <span>a partir de ${minPoints} pontos</span>
-                  </div>
-                </div>
-                <div class="rewards-grid">
-            `;
-
-            catRewards.forEach(reward => {
-              const canAfford = currentPoints >= reward.cost;
-              const canRedeem = storeOpen && canAfford;
-              
-              html += `
-                <div class="reward-card ${!canAfford ? 'locked' : ''} ${!storeOpen ? 'disabled' : ''}">
-                  <div class="reward-icon">
-                    ${reward.image_url 
-                      ? `<img src="${reward.image_url}" alt="${reward.name}">` 
-                      : `<svg viewBox="0 0 256 256" fill="currentColor">
-                          <path d="M216,72H178.83L200.3,35.5a8,8,0,0,0-13.7-8.27L164.41,64H91.59L69.4,27.23a8,8,0,1,0-13.7,8.27L77.17,72H40A16,16,0,0,0,24,88V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V88A16,16,0,0,0,216,72Z"></path>
-                        </svg>`
-                    }
-                  </div>
-                  <div class="reward-info">
-                    <h3>${reward.name}</h3>
-                    <p>${reward.description || 'Recompensa exclusiva'}</p>
-                  </div>
-                  <div class="reward-footer">
-                    <div class="reward-cost">
-                      <svg viewBox="0 0 256 256" fill="currentColor">
-                        <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H136v48a8,8,0,0,1-16,0V136H72a8,8,0,0,1,0-16h32V88a8,8,0,0,1,16,0v32h32A8,8,0,0,1,192,128Z"></path>
-                      </svg>
-                      ${reward.cost}
-                    </div>
-                    <button class="btn ${canRedeem ? 'btn-primary' : 'btn-locked'}" 
-                            onclick="purchase('${reward.id}', '${reward.name.replace(/'/g, "\\'")}', ${reward.cost})"
-                            ${!canRedeem ? 'disabled' : ''}>
-                      ${!storeOpen ? 'Loja fechada' : !canAfford ? 'Pontos insuficientes' : 'Resgatar'}
-                    </button>
-                  </div>
-                </div>
-              `;
-            });
-
-            html += `</div></div>`;
-          }
-
-          container.innerHTML = html;
-
-        } catch (error) {
-          console.error('Erro ao carregar recompensas:', error);
-          document.getElementById('rewards-container').innerHTML = 
-            '<div class="loading">Erro ao carregar recompensas</div>';
-        }
-      }
-
-      window.purchase = async function(id, name, cost) {
-        if (!storeOpen) {
-          Toast.show('A loja está fechada no momento', 'error');
-          return;
-        }
-
-        const currentTurn = await DB.redemptions.getCurrentTurn();
-        if (!currentTurn || currentTurn.id !== user.id) {
-          Toast.show('Aguarde sua vez na fila para resgatar', 'error');
-          return;
-        }
-
-        if (currentPoints < cost) {
-          Toast.show('Pontos insuficientes', 'error');
-          return;
-        }
-        
-        if (!confirm(`Deseja resgatar "${name}" por ${cost} pontos?`)) return;
-
-        try {
-          const redemption = {
-            user_id: user.id,
-            reward_id: id,
-            reward_name: name,
-            cost: cost,
-            status: 'pending',
-            created_at: new Date().toISOString()
-          };
-
-          await DB.redemptions.create(redemption);
-
-          const newPoints = currentPoints - cost;
-          await DB.users.update(user.id, { points: newPoints });
-          
-          user.points = newPoints;
-          currentPoints = newPoints;
-          SessionManager.setUser(user);
-          ProfileHeader.update();
-
-          document.getElementById('user-points').textContent = newPoints;
-          document.getElementById('progress-fill').style.width = Math.min((newPoints / 100) * 100, 100) + '%';
-          updateProgressMessage(newPoints);
-
-          Toast.show('Resgate solicitado com sucesso!', 'success');
-
-          await DB.redemptions.completeTurn(user.id);
-          await updateStoreAndQueue();
-          await loadRewards();
-
-        } catch (error) {
-          console.error('Erro ao resgatar:', error);
-          Toast.show('Erro ao processar resgate', 'error');
-        }
-      };
-
-      async function updateStoreAndQueue() {
-        try {
-          const status = await DB.store.getStatus();
-          storeOpen = status.is_open;
-          
-          const banner = document.getElementById('store-closed-banner');
-          const queueInfo = document.getElementById('queue-info');
-          const yourTurnInfo = document.getElementById('your-turn-info');
-          const queueModal = document.getElementById('queue-modal');
-          const nextOpenDate = document.getElementById('next-open-date');
-          
-          const queue = await DB.redemptions.getQueue();
-          const position = queue.findIndex(u => u.id === user.id) + 1;
           const currentTurn = await DB.redemptions.getCurrentTurn();
-          
-          document.getElementById('modal-position').textContent = `#${position || 0}`;
-          document.getElementById('user-position').textContent = `#${position || 0}`;
-          
-          const pendingCount = await DB.redemptions.getPendingCount();
-          
-          if (status.next_open_date) {
-            const date = new Date(status.next_open_date);
-            nextOpenDate.textContent = date.toLocaleDateString('pt-BR', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric'
-            }) + ' (dia 5)';
-          } else {
-            const nextDate = await DB.store.calculateNextOpenDate();
-            const date = new Date(nextDate);
-            nextOpenDate.textContent = date.toLocaleDateString('pt-BR', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric'
-            }) + ' (dia 5)';
-          }
-          
-          if (!storeOpen) {
-            banner.style.display = 'flex';
-            queueInfo.style.display = 'none';
-            yourTurnInfo.style.display = 'none';
-            
-            if (pendingCount > 0) {
-              queueModal.classList.add('active');
-            } else {
-              queueModal.classList.remove('active');
-            }
-            
-            if (timerInterval) clearInterval(timerInterval);
-            
-          } else {
-            banner.style.display = 'none';
-            
-            if (currentTurn && currentTurn.id === user.id) {
-              queueInfo.style.display = 'none';
-              yourTurnInfo.style.display = 'flex';
-              queueModal.classList.remove('active');
-              startTimer();
-            } else if (position > 0) {
-              queueInfo.style.display = 'flex';
-              yourTurnInfo.style.display = 'none';
-              queueModal.classList.remove('active');
-              if (timerInterval) clearInterval(timerInterval);
-            } else {
-              queueInfo.style.display = 'none';
-              yourTurnInfo.style.display = 'none';
-              queueModal.classList.remove('active');
-              if (timerInterval) clearInterval(timerInterval);
-            }
+          if (!currentTurn || currentTurn.id !== user.id) {
+            Toast.show('Aguarde sua vez na fila para resgatar', 'error');
+            return;
           }
 
-          await loadRewards();
+          if (currentPoints < cost) {
+            Toast.show('Pontos insuficientes', 'error');
+            return;
+          }
+          
+          if (!confirm(`Deseja resgatar "${name}" por ${cost} pontos?`)) return;
 
-        } catch (error) {
-          console.error('Erro ao atualizar status:', error);
+          try {
+            const redemption = {
+              user_id: user.id,
+              reward_id: id,
+              reward_name: name,
+              cost: cost,
+              status: 'pending',
+              created_at: new Date().toISOString()
+            };
+
+            await DB.redemptions.create(redemption);
+
+            const newPoints = currentPoints - cost;
+            await DB.users.update(user.id, { points: newPoints });
+            
+            user.points = newPoints;
+            currentPoints = newPoints;
+            SessionManager.setUser(user);
+            ProfileHeader.update();
+
+            document.getElementById('user-points').textContent = newPoints;
+            document.getElementById('progress-fill').style.width = Math.min((newPoints / 100) * 100, 100) + '%';
+            updateProgressMessage(newPoints);
+
+            Toast.show('Resgate solicitado com sucesso!', 'success');
+
+            await DB.redemptions.completeTurn(user.id);
+            await updateStoreAndQueue();
+            await loadRewards();
+
+          } catch (error) {
+            console.error('Erro ao resgatar:', error);
+            Toast.show('Erro ao processar resgate', 'error');
+          }
+        };
+
+        async function updateStoreAndQueue() {
+          try {
+            const status = await DB.store.getStatus();
+            storeOpen = status.is_open;
+            
+            const banner = document.getElementById('store-closed-banner');
+            const queueInfo = document.getElementById('queue-info');
+            const yourTurnInfo = document.getElementById('your-turn-info');
+            const queueModal = document.getElementById('queue-modal');
+            const nextOpenDate = document.getElementById('next-open-date');
+            
+            const queue = await DB.redemptions.getQueue();
+            const position = queue.findIndex(u => u.id === user.id) + 1;
+            const currentTurn = await DB.redemptions.getCurrentTurn();
+            
+            document.getElementById('modal-position').textContent = `#${position || 0}`;
+            document.getElementById('user-position').textContent = `#${position || 0}`;
+            
+            const pendingCount = await DB.redemptions.getPendingCount();
+            
+            if (status.next_open_date) {
+              const date = new Date(status.next_open_date);
+              nextOpenDate.textContent = date.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              }) + ' (dia 5)';
+            } else {
+              const nextDate = await DB.store.calculateNextOpenDate();
+              const date = new Date(nextDate);
+              nextOpenDate.textContent = date.toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              }) + ' (dia 5)';
+            }
+            
+            if (!storeOpen) {
+              banner.style.display = 'flex';
+              queueInfo.style.display = 'none';
+              yourTurnInfo.style.display = 'none';
+              
+              if (pendingCount > 0) {
+                queueModal.classList.add('active');
+              } else {
+                queueModal.classList.remove('active');
+              }
+              
+              if (timerInterval) clearInterval(timerInterval);
+              
+            } else {
+              banner.style.display = 'none';
+              
+              if (currentTurn && currentTurn.id === user.id) {
+                queueInfo.style.display = 'none';
+                yourTurnInfo.style.display = 'flex';
+                queueModal.classList.remove('active');
+                startTimer();
+              } else if (position > 0) {
+                queueInfo.style.display = 'flex';
+                yourTurnInfo.style.display = 'none';
+                queueModal.classList.remove('active');
+                if (timerInterval) clearInterval(timerInterval);
+              } else {
+                queueInfo.style.display = 'none';
+                yourTurnInfo.style.display = 'none';
+                queueModal.classList.remove('active');
+                if (timerInterval) clearInterval(timerInterval);
+              }
+            }
+
+            await loadRewards();
+
+          } catch (error) {
+            console.error('Erro ao atualizar status:', error);
+          }
         }
-      }
 
-      document.getElementById('user-points').textContent = currentPoints;
-      document.getElementById('progress-fill').style.width = Math.min((currentPoints / 100) * 100, 100) + '%';
-      updateProgressMessage(currentPoints);
+        document.getElementById('user-points').textContent = currentPoints;
+        document.getElementById('progress-fill').style.width = Math.min((currentPoints / 100) * 100, 100) + '%';
+        updateProgressMessage(currentPoints);
 
-      await updateStoreAndQueue();
-
-      setInterval(async () => {
-        await DB.store.checkTurnExpired();
         await updateStoreAndQueue();
-      }, 1000);
-    })();
+
+        setInterval(async () => {
+          await DB.store.checkTurnExpired();
+          await updateStoreAndQueue();
+        }, 1000);
+      })();
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
       const menuToggle = document.getElementById('menuToggle');
