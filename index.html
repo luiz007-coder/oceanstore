@@ -73,18 +73,16 @@
     .logo-icon {
       width: 72px;
       height: 72px;
-      background: linear-gradient(135deg, var(--cyan-primary), var(--cyan-dark));
-      border-radius: 20px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       margin-bottom: 20px;
     }
 
-    .logo-icon svg {
-      width: 36px;
-      height: 36px;
-      color: var(--white);
+    .logo-icon img {
+      width: 58px;
+      height: 58px;
+      display: block;
     }
 
     .logo h1 {
@@ -325,13 +323,9 @@
     <div class="login-card">
       <div class="logo">
         <div class="logo-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 3h18v18H3zM9 9h6v6H9z"/>
-            <path d="M3 9h6M3 15h6M15 9h6M15 15h6M9 3v6M15 3v6M9 15v6M15 15v6"/>
-          </svg>
+          <img src="https://i.imgur.com/U9aXSQB.png" alt="OceanStore">
         </div>
         <h1>OceanStore</h1>
-        <p>Mini Marketplace Digital</p>
       </div>
 
       <div class="error-message" id="error-message"></div>
@@ -359,7 +353,7 @@
 
       <div id="step-2" class="verification-step">
         <div class="code-display">
-          <div class="label">Seu Código de Verificação</div>
+          <div class="label">Seu código</div>
           <div class="code" id="verification-code">EFE-----</div>
         </div>
 
