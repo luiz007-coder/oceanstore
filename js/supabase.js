@@ -854,7 +854,7 @@ const DB = {
         const startTime = new Date(store.turn_start_time).getTime();
         const now = new Date().getTime();
         const elapsedSeconds = Math.floor((now - startTime) / 1000);
-        const remainingSeconds = 1800 - elapsedSeconds;
+        const remainingSeconds = 3600 - elapsedSeconds;
 
         return remainingSeconds > 0 ? remainingSeconds : 0;
       } catch (error) {
