@@ -2090,7 +2090,14 @@
 
               for (let i = 0; i < users.length; i++) {
                 const u = users[i];
-                const missions = await DB.missions.getByUser(u.id);
+                let missionsCount = 0;
+                try {
+                  const missions = await DB.missions.getByUser(u.id);
+                  missionsCount = missions.length;
+                } catch (error) {
+                  console.error('Erro ao buscar missões do usuário:', error);
+                }
+                
                 tbody.innerHTML += `
                   <tr>
                     <td>#${i + 1}</td>
@@ -2100,7 +2107,7 @@
                       ${u.is_admin ? ' 👑' : ''}
                     </td>
                     <td>${u.points}</td>
-                    <td>${missions.length}</td>
+                    <td>${missionsCount}</td>
                     <td>${u.is_admin ? 'Sim' : 'Não'}</td>
                     <td>
                       <div class="action-btns">
@@ -2135,18 +2142,29 @@
 
           window.openEditUserModal = async function(userId) {
             editingUserId = userId;
-            const user = (await DB.users.getAll()).find(u => u.id === userId);
-            if (user) {
-              document.getElementById('edit-user-nick').value = user.nick;
-              document.getElementById('edit-user-points').value = user.points;
-              document.getElementById('edit-user-reason').value = '';
-              document.getElementById('edit-user-modal').classList.add('active');
+            
+            try {
+              const users = await DB.users.getAll();
+              
+              const user = users.find(u => String(u.id) === String(userId));
+              
+              if (user) {
+                document.getElementById('edit-user-nick').value = user.nick;
+                document.getElementById('edit-user-points').value = user.points;
+                document.getElementById('edit-user-reason').value = '';
+                document.getElementById('edit-user-modal').classList.add('active');
+              } else {
+                Toast.show(`Usuário ${userId} não encontrado`, 'error');
+              }
+            } catch (error) {
+              Toast.show('Erro ao carregar dados do usuário', 'error');
             }
           };
 
           window.closeEditUserModal = function() {
             editingUserId = null;
             document.getElementById('edit-user-modal').classList.remove('active');
+            document.getElementById('edit-user-reason').value = '';
           };
 
           window.saveUserEdit = async function() {
@@ -2164,14 +2182,34 @@
             }
 
             try {
+              const users = await DB.users.getAll();
+              const user = users.find(u => String(u.id) === String(editingUserId));
+              
+              if (!user) {
+                Toast.show('Usuário não encontrado', 'error');
+                return;
+              }
+              
+              const oldPoints = user.points;
+              const difference = points - oldPoints;
+
               await DB.users.update(editingUserId, { points });
-              Toast.show(`Pontos alterados para ${points}`, 'success');
+
+              if (difference > 0) {
+                Toast.show(`Pontos de ${user.nick} aumentados em +${difference} (${oldPoints} → ${points})`, 'success');
+              } else if (difference < 0) {
+                Toast.show(`Pontos de ${user.nick} reduzidos em ${difference} (${oldPoints} → ${points})`, 'warning');
+              } else {
+                Toast.show(`Nenhuma alteração nos pontos de ${user.nick}`, 'info');
+              }
+              
               closeEditUserModal();
               await loadUsers();
               await loadStats();
+              await loadQueue();
             } catch (error) {
               console.error('Erro ao editar usuário:', error);
-              Toast.show('Erro ao editar usuário', 'error');
+              Toast.show('Erro ao editar usuário: ' + error.message, 'error');
             }
           };
 
