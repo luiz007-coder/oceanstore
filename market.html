@@ -1354,19 +1354,21 @@
         
         ProfileHeader.init();
 
-        (async function checkCurrentTurn() {
-          const currentTurn = await DB.redemptions.getCurrentTurn();
+        (async function checkAndStartTurn() {
+          const store = await DB.store.getStatus();
           const queue = await DB.redemptions.getQueue();
-          
-          if (!currentTurn && queue.length > 0 && storeOpen) {
-            await DB.redemptions.processNextTurn();
-          }
+          const currentTurn = await DB.redemptions.getCurrentTurn();
 
-          if (currentTurn && queue.length > 0) {
-            const userInQueue = queue.some(u => u.id === currentTurn.id);
-            if (!userInQueue) {
-              await DB.store.resetCurrentTurn();
+          if (store.is_open) {
+            if (!currentTurn && queue.length > 0) {
               await DB.redemptions.processNextTurn();
+            }
+
+            if (currentTurn && queue.length > 0) {
+              const firstInQueue = queue[0];
+              if (currentTurn.id !== firstInQueue.id) {
+                await DB.redemptions.processNextTurn();
+              }
             }
           }
         })();
@@ -1545,9 +1547,13 @@
           }
 
           const currentTurn = await DB.redemptions.getCurrentTurn();
+          const queue = await DB.redemptions.getQueue();
+          const position = queue.findIndex(u => u.id === user.id) + 1;
 
+          console.log('=== TENTATIVA DE RESGATE ===');
           console.log('Current Turn:', currentTurn);
           console.log('User:', user);
+          console.log('Position in queue:', position);
           
           if (!currentTurn) {
             Toast.show('Ninguém está na vez no momento. Aguarde...', 'error');
@@ -1555,9 +1561,7 @@
           }
           
           if (currentTurn.id !== user.id) {
-            const queue = await DB.redemptions.getQueue();
-            const position = queue.findIndex(u => u.id === user.id) + 1;
-            Toast.show(`Opa, não é sua vez! Sua posição na fila é: #${position}`, 'error');
+            Toast.show(`Não é sua vez! Sua posição na fila é: #${position}. Vez atual: ${currentTurn.nick}`, 'error');
             return;
           }
 
@@ -1619,7 +1623,7 @@
             document.getElementById('progress-fill').style.width = Math.min((newPoints / 100) * 100, 100) + '%';
             updateProgressMessage(newPoints);
 
-            Toast.show('Resgate feito com sucesso!', 'success');
+            Toast.show('Resgate feito com sucesso! Passando a vez...', 'success');
 
             await DB.redemptions.processNextTurn();
             await updateStoreAndQueue();
@@ -1683,25 +1687,31 @@
               
             } else {
               banner.style.display = 'none';
-              
+
               if (currentTurn && currentTurn.id === user.id) {
                 queueInfo.style.display = 'none';
                 yourTurnInfo.style.display = 'flex';
                 queueModal.classList.remove('active');
                 startTimer();
 
-                Toast.show('É a sua vez! Você tem 1 hora para resgatar.', 'success', 5000);
+                const turnMessage = document.getElementById('your-turn-info').querySelector('p');
+                turnMessage.innerHTML = '<strong>É a sua vez!</strong> Você tem <strong>60 minutos</strong> para resgatar.';
                 
-              } else if (position > 0) {
+              } 
+              else if (position > 0) {
                 queueInfo.style.display = 'flex';
                 yourTurnInfo.style.display = 'none';
                 queueModal.classList.remove('active');
                 if (timerInterval) clearInterval(timerInterval);
 
                 const queueText = document.getElementById('queue-text');
-                queueText.innerHTML = `Aguardando sua vez na fila... Sua posição: <strong>#${position}</strong>`;
-                
-              } else {
+                if (currentTurn) {
+                  queueText.innerHTML = `Aguardando sua vez... Sua posição: <strong>#${position}</strong><br><small>Vez atual: ${currentTurn.nick} (${currentTurn.points} pts)</small>`;
+                } else {
+                  queueText.innerHTML = `Aguardando sua vez... Sua posição: <strong>#${position}</strong>`;
+                }
+              } 
+              else {
                 queueInfo.style.display = 'none';
                 yourTurnInfo.style.display = 'none';
                 queueModal.classList.remove('active');

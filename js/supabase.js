@@ -347,7 +347,6 @@ const DB = {
         });
         
         const userIds = Object.keys(userPendingCounts);
-
         const users = await DB.users.getAll();
 
         const queueUsers = users
@@ -356,8 +355,9 @@ const DB = {
             ...u,
             pending_count: userPendingCounts[u.id]
           }))
-          .sort((a, b) => a.points - b.points);
+          .sort((a, b) => b.points - a.points);
         
+        console.log('Queue ordenada (maior para menor):', queueUsers.map(u => ({ nick: u.nick, points: u.points })));
         return queueUsers;
       } catch (error) {
         console.error('Erro ao buscar fila:', error);
@@ -717,25 +717,51 @@ const DB = {
     async setStatus(isOpen, nextOpenDate = null) {
       try {
         let autoCloseDate = null;
+
+        if (!isOpen) {
+          const users = await DB.users.getAll();
+          
+          for (const user of users) {
+            await DB.users.update(user.id, { points: 0 });
+          }
+
+          const now = new Date();
+          let nextDate;
+          
+          if (now.getDate() >= 5) {
+            if (now.getMonth() === 11) {
+              nextDate = new Date(now.getFullYear() + 1, 0, 5, 0, 0, 0);
+            } else {
+              nextDate = new Date(now.getFullYear(), now.getMonth() + 1, 5, 0, 0, 0);
+            }
+          } else {
+            nextDate = new Date(now.getFullYear(), now.getMonth(), 5, 0, 0, 0);
+          }
+          
+          nextOpenDate = nextDate.toISOString();
+          
+          Toast.show(`Pontos resetados! Próxima abertura: ${nextDate.toLocaleDateString('pt-BR')}`, 'success');
+        }
+
         if (isOpen) {
           const closeDate = new Date();
           closeDate.setDate(closeDate.getDate() + 5);
           autoCloseDate = closeDate.toISOString();
-          
-          const queue = await DB.redemptions.getQueue();
-          if (queue.length > 0) {
+
+          setTimeout(async () => {
             await DB.redemptions.processNextTurn();
-          }
+          }, 100);
         }
         
         const existing = await SupabaseClient.select('store_settings', { eq: { id: 1 } });
+        
         if (existing && existing.length > 0) {
           return await SupabaseClient.update('store_settings', 1, { 
             is_open: isOpen, 
             next_open_date: nextOpenDate,
             auto_close_date: autoCloseDate,
-            current_user_id: isOpen ? existing[0].current_user_id : null,
-            turn_start_time: isOpen ? existing[0].turn_start_time : null,
+            current_user_id: isOpen ? null : null,
+            turn_start_time: isOpen ? null : null,
             updated_at: new Date().toISOString()
           });
         } else {
@@ -746,7 +772,7 @@ const DB = {
             auto_close_date: autoCloseDate,
             current_user_id: null,
             turn_start_time: null,
-            last_reset_date: null,
+            last_reset_date: new Date().toISOString(),
             created_at: new Date().toISOString()
           });
         }
@@ -796,13 +822,12 @@ const DB = {
           
           await this.setStatus(false, nextDate.toISOString());
           
-          await SupabaseClient.update('store_settings', 1, { 
-            last_reset_date: now.toISOString(),
-            current_user_id: null,
-            turn_start_time: null
-          });
-          
           console.log('Pontos resetados. Loja fechada até', nextDate.toLocaleDateString());
+
+          if (typeof Toast !== 'undefined') {
+            Toast.show(`Loja fechada! Pontos resetados. Próxima abertura: ${nextDate.toLocaleDateString('pt-BR')}`, 'warning');
+          }
+          
           return true;
         }
         return false;

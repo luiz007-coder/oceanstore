@@ -1496,6 +1496,18 @@
               Salvar configurações
             </button>
           </div>
+          <div class="form-group full-width" style="margin-top: 20px; border-top: 2px solid var(--gray-200); padding-top: 20px;">
+            <h3 style="margin-bottom: 15px; color: var(--danger);">Área de risco</h3>
+            <button class="btn btn-danger" onclick="resetAllPoints()" style="width: 100%;">
+              <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" style="margin-right: 8px;">
+                <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"></path>
+              </svg>
+              RESETAR PONTOS DE TODOS OS USUÁRIOS
+            </button>
+            <p style="color: var(--gray-500); font-size: 12px; margin-top: 10px; text-align: center;">
+              Esta ação é irreversível e vai zerar os pontos de todos os membros.
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -2292,6 +2304,13 @@
                 const nextDate = await DB.store.calculateNextOpenDate();
                 nextOpening = nextDate.slice(0,16);
               }
+
+              if (!isOpen) {
+                if (!confirm('ATENÇÃO: Ao fechar a loja, TODOS os pontos serão resetados! Continuar?')) {
+                  document.getElementById('store-status').checked = true;
+                  return;
+                }
+              }
               
               await DB.store.setStatus(isOpen, nextOpening || null);
               
@@ -2299,18 +2318,54 @@
                 await DB.redemptions.processNextTurn();
                 Toast.show('Loja aberta! Fecha automaticamente dia 10.', 'success');
               } else {
-                if (nextOpening) {
-                  const date = new Date(nextOpening).toLocaleDateString('pt-BR');
-                  Toast.show(`Loja fechada. Próxima abertura: ${date}`, 'success');
-                } else {
-                  Toast.show('Loja fechada. Configurações salvas!', 'success');
-                }
+                Toast.show('Loja fechada. Pontos resetados!', 'success');
+              }
+
+              loadQueue();
+
+              if (typeof updateStoreStatus === 'function') {
+                updateStoreStatus();
               }
               
-              loadQueue();
             } catch (error) {
               console.error('Erro ao salvar configurações:', error);
               Toast.show('Erro ao salvar configurações', 'error');
+            }
+          };
+
+          window.resetAllPoints = async function() {
+            if (!confirm('ATENÇÃO: Isso vai resetar os pontos de TODOS os usuários! Tem certeza?')) {
+              return;
+            }
+            
+            if (!confirm('ÚLTIMA CHANCE: Essa ação não pode ser desfeita. Confirmar?')) {
+              return;
+            }
+            
+            try {
+              const users = await DB.users.getAll();
+              let count = 0;
+              
+              Toast.show(`Resetando pontos de ${users.length} usuários...`, 'warning');
+              
+              for (const user of users) {
+                await DB.users.update(user.id, { points: 0 });
+                count++;
+
+                if (count % 10 === 0) {
+                  console.log(`${count}/${users.length} usuários resetados...`);
+                }
+              }
+              
+              Toast.show(`Pontos resetados! ${count} usuários afetados.`, 'success');
+
+              loadUsers();
+              loadStats();
+              loadQueue();
+              
+            } catch (error) {
+              console.error('Erro ao resetar pontos:', error);
+              Toast.show('Erro ao resetar pontos', 'error');
             }
           };
 
