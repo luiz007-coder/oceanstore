@@ -337,8 +337,7 @@ const DB = {
         return 0;
       }
     },
-    
-    // FILA ORDENADA POR PONTOS (MAIOR PARA MENOR)
+
     async getQueue() {
       try {
         const users = await DB.users.getAll();
@@ -405,7 +404,6 @@ const DB = {
             console.log('Próximo da fila:', nextUser.nick);
             return nextUser;
           } else {
-            // Fim da fila, volta para o primeiro
             const firstUser = queue[0];
             await SupabaseClient.update('store_settings', 1, { 
               current_user_id: firstUser.id,
@@ -415,7 +413,6 @@ const DB = {
             return firstUser;
           }
         } else {
-          // Não tem ninguém jogando, pega o primeiro da fila
           const firstUser = queue[0];
           await SupabaseClient.update('store_settings', 1, { 
             current_user_id: firstUser.id,

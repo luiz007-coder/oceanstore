@@ -1131,19 +1131,19 @@
   <main class="main-content">
     <div class="page-header">
       <h1>Resgates</h1>
-      <p>Complete missões e acompanhe seu histórico</p>
+      <p>Complete missões e acompanhe seu histórico.</p>
     </div>
 
     <div class="two-columns">
       <div class="form-card">
         <h2>RESGATAR</h2>
         
-        <div class="alert alert-success" id="success-alert">Missão submetida com sucesso!</div>
+        <div class="alert alert-success" id="success-alert">Missão enviada!</div>
         <div class="alert alert-error" id="error-alert"></div>
         
         <form id="mission-form">
           <div class="form-group">
-            <label for="nick">Seu Nick</label>
+            <label for="nick">Seu nick</label>
             <input type="text" id="nick" disabled>
           </div>
           
@@ -1366,8 +1366,10 @@
               return;
             }
 
-            if (!proofUrl.match(/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|imgur\.com)/i)) {
-              showAlert('error', 'Link inválido. Use Imgur ou outra imagem direta');
+            try {
+              new URL(proofUrl);
+            } catch {
+              showAlert('error', 'Link inválido. Digite uma URL válida');
               return;
             }
 
