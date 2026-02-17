@@ -66,7 +66,7 @@ const Auth = {
       });
       
       if (!users || users.length === 0) {
-        return { success: false, error: 'Usuário não encontrado' };
+        return { success: false, error: 'Usuário não encontrado. Crie uma conta' };
       }
 
       const user = users[0];
@@ -293,7 +293,7 @@ const Auth = {
     try {
       const existingUser = await DB.users.getByNick(nick);
       if (!existingUser) {
-        return { success: false, error: 'Usuário não encontrado' };
+        return { success: false, error: 'Usuário não encontrado. Crie uma conta' };
       }
 
       if (existingUser.banned) {

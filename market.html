@@ -727,11 +727,11 @@
 
             if (status.next_open_date && nextOpenDate) {
               const date = new Date(status.next_open_date);
-              nextOpenDate.textContent = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' (dia 5)';
+              nextOpenDate.textContent = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' :)';
             } else if (nextOpenDate) {
               const nextDate = await DB.store.calculateNextOpenDate();
               const date = new Date(nextDate);
-              nextOpenDate.textContent = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' (dia 5)';
+              nextOpenDate.textContent = date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' :)';
             }
 
             if (!storeOpen) {
