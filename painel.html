@@ -1330,6 +1330,7 @@
       <button class="tab-btn" onclick="showTab('rewards')">Recompensas</button>
       <button class="tab-btn" onclick="showTab('users')">Usuários</button>
       <button class="tab-btn" onclick="showTab('queue')">Fila</button>
+      <button class="tab-btn" onclick="showTab('redemptions')">Resgates</button>
       <button class="tab-btn" onclick="showTab('store')">Configurações</button>
     </div>
 
@@ -1467,6 +1468,32 @@
             </tr>
           </thead>
           <tbody id="queue-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-redemptions" class="tab-content">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">Gerenciar resgates</h2>
+          <div>
+            <span class="status-badge status-pending" id="pending-redemptions-count">0 pendentes</span>
+          </div>
+        </div>
+        <div class="loading" id="redemptions-loading">Carregando resgates...</div>
+        <table class="data-table" id="redemptions-table" style="display: none;">
+          <thead>
+            <tr>
+              <th>Usuário</th>
+              <th>Recompensa</th>
+              <th>Categoria</th>
+              <th>Custo</th>
+              <th>Data</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="redemptions-body"></tbody>
         </table>
       </div>
     </div>
@@ -1655,6 +1682,7 @@
   <script src="js/supabase.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/profile-header.js"></script>
+  <script src="js/store-manager.js"></script>
   <script>
     (function() {
       if (!SessionManager.isAuthenticated()) {
@@ -2177,6 +2205,103 @@
             });
           };
 
+          window.loadRedemptions = async function() {
+            try {
+              const redemptions = await DB.redemptions.getAll();
+              const pending = redemptions.filter(r => r.status === 'pending');
+              
+              document.getElementById('pending-redemptions-count').textContent = 
+                `${pending.length} pendente${pending.length !== 1 ? 's' : ''}`;
+              
+              const tbody = document.getElementById('redemptions-body');
+              const table = document.getElementById('redemptions-table');
+              const loading = document.getElementById('redemptions-loading');
+
+              if (!redemptions || redemptions.length === 0) {
+                loading.textContent = 'Nenhum resgate encontrado';
+                return;
+              }
+
+              loading.style.display = 'none';
+              table.style.display = 'table';
+              
+              tbody.innerHTML = redemptions.map(r => `
+                <tr>
+                  <td><strong>${r.users?.nick || 'Desconhecido'}</strong></td>
+                  <td>${r.reward_name || 'Recompensa'}</td>
+                  <td>
+                    <span class="status-badge" style="background: ${getCategoryColor(r.reward_category)}">
+                      ${r.reward_category || 'N/A'}
+                    </span>
+                  </td>
+                  <td>${r.cost || 0} pts</td>
+                  <td>${new Date(r.created_at).toLocaleString('pt-BR')}</td>
+                  <td>
+                    <span class="status-badge status-${r.status}">
+                      ${r.status === 'pending' ? 'Pendente' : 
+                        r.status === 'approved' ? 'Aprovado' : 'Rejeitado'}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="action-btns">
+                      ${r.status === 'pending' ? `
+                        <button class="icon-btn success" onclick="approveRedemption(${r.id})" title="Aprovar">
+                          <svg viewBox="0 0 256 256" fill="currentColor">
+                            <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm45.66-125.66a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,140.69l50.34-50.35A8,8,0,0,1,173.66,90.34Z"></path>
+                          </svg>
+                        </button>
+                        <button class="icon-btn danger" onclick="rejectRedemption(${r.id})" title="Rejeitar">
+                          <svg viewBox="0 0 256 256" fill="currentColor">
+                            <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm37.66-133.66a8,8,0,0,1,0,11.32L139.31,128l26.35,26.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35A8,8,0,0,1,165.66,90.34Z"></path>
+                          </svg>
+                        </button>
+                      ` : '-'}
+                    </div>
+                  </td>
+                </tr>
+              `).join('');
+            } catch (error) {
+              console.error('Erro ao carregar resgates:', error);
+              document.getElementById('redemptions-loading').textContent = 'Erro ao carregar resgates';
+            }
+          };
+
+          function getCategoryColor(category) {
+            const colors = {
+              diamond: '#b9f2ff',
+              gold: '#ffd700',
+              silver: '#c0c0c0',
+              bronze: '#cd7f32'
+            };
+            return colors[category] || '#e2e8f0';
+          }
+
+          window.approveRedemption = async function(id) {
+            showConfirm('Aprovar resgate', 'Confirmar aprovação deste resgate?', async () => {
+              try {
+                await DB.redemptions.updateStatus(id, 'approved');
+                Toast.show('Resgate aprovado!', 'success');
+                await loadRedemptions();
+              } catch (error) {
+                console.error('Erro ao aprovar resgate:', error);
+                Toast.show('Erro ao aprovar resgate', 'error');
+              }
+            });
+          };
+
+          window.rejectRedemption = async function(id) {
+            showConfirm('Rejeitar resgate', 'Rejeitar este resgate?', async () => {
+              try {
+                await DB.redemptions.updateStatus(id, 'rejected');
+                Toast.show('Resgate rejeitado!', 'success');
+                await loadRedemptions();
+              } catch (error) {
+                console.error('Erro ao rejeitar resgate:', error);
+                Toast.show('Erro ao rejeitar resgate', 'error');
+              }
+            });
+          };
+
           window.loadQueue = async function() {
             try {
               const store = await DB.store.getStatus();
@@ -2260,7 +2385,8 @@
                 if (remaining <= 0) {
                   clearInterval(timerInterval);
                   await DB.redemptions.processNextTurn();
-                  loadQueue();
+                  await loadQueue();
+                  Toast.show('Tempo esgotado! Vez pulada automaticamente.', 'warning');
                 }
               } catch (error) {
                 console.error('Erro no timer:', error);
@@ -2273,7 +2399,8 @@
               try {
                 await DB.redemptions.processNextTurn();
                 Toast.show('Vez pulada com sucesso!', 'success');
-                loadQueue();
+                await loadQueue();
+                await loadRedemptions();
               } catch (error) {
                 console.error('Erro ao pular vez:', error);
                 Toast.show('Erro ao pular vez', 'error');
@@ -2376,6 +2503,7 @@
           await loadQueue();
           await loadStoreSettings();
           await loadPendingMissions();
+          await loadRedemptions();
 
           setInterval(async () => {
             await loadStats();

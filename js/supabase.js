@@ -876,13 +876,27 @@ const DB = {
         
         const startTime = new Date(store.turn_start_time).getTime();
         const now = new Date().getTime();
-        const elapsed = Math.floor((now - startTime) / 1000 / 60);
-        const remaining = 60 - elapsed;
+        const elapsed = Math.floor((now - startTime) / 1000);
+        const remaining = 3600 - elapsed;
         
         return remaining > 0 ? remaining : 0;
       } catch (error) {
         console.error('Erro ao calcular tempo restante:', error);
         return 0;
+      }
+    },
+
+    async canRedeemCategory(userId, category) {
+      try {
+        const userRedemptions = await DB.redemptions.getByUser(userId);
+        const categoryRedemptions = userRedemptions.filter(r => 
+          r.reward_category === category && r.status === 'approved'
+        ).length;
+        
+        return categoryRedemptions < 1;
+      } catch (error) {
+        console.error('Erro ao verificar categoria:', error);
+        return false;
       }
     },
     
