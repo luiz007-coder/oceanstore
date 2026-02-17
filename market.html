@@ -1634,26 +1634,24 @@
             const status = await DB.store.getStatus();
             storeOpen = status.is_open;
             
+            console.log('=== MARKET UPDATE ===');
+            console.log('Store status:', status);
+            
             const banner = document.getElementById('store-closed-banner');
             const queueInfo = document.getElementById('queue-info');
             const yourTurnInfo = document.getElementById('your-turn-info');
             const queueModal = document.getElementById('queue-modal');
             const nextOpenDate = document.getElementById('next-open-date');
-            
+
             const queue = await DB.redemptions.getQueue();
             const position = queue.findIndex(u => u.id === user.id) + 1;
             const currentTurn = await DB.redemptions.getCurrentTurn();
             
-            console.log('Queue:', queue);
+            console.log('Queue (by points):', queue.map(u => ({ nick: u.nick, points: u.points })));
             console.log('Current turn:', currentTurn);
             console.log('User position:', position);
             console.log('User ID:', user.id);
-            
-            document.getElementById('modal-position').textContent = `#${position || 0}`;
-            document.getElementById('user-position').textContent = `#${position || 0}`;
-            
-            const pendingCount = await DB.redemptions.getPendingCount();
-            
+
             if (status.next_open_date) {
               const date = new Date(status.next_open_date);
               nextOpenDate.textContent = date.toLocaleDateString('pt-BR', {
@@ -1670,44 +1668,32 @@
                 year: 'numeric'
               }) + ' (dia 5)';
             }
+
+            if (storeOpen && queue.length > 0 && !currentTurn) {
+              console.log('No current turn, setting first in queue as current turn');
+              await DB.redemptions.processNextTurn();
+              setTimeout(async () => {
+                await updateStoreAndQueue();
+              }, 500);
+              return;
+            }
+
+            document.getElementById('modal-position').textContent = `#${position || 0}`;
+            document.getElementById('user-position').textContent = `#${position || 0}`;
             
             if (!storeOpen) {
               banner.style.display = 'flex';
               queueInfo.style.display = 'none';
               yourTurnInfo.style.display = 'none';
               
-              if (pendingCount > 0) {
-                queueModal.classList.add('active');
-              } else {
-                queueModal.classList.remove('active');
-              }
-              
               if (timerInterval) clearInterval(timerInterval);
               
             } else {
               banner.style.display = 'none';
 
-              if (!currentTurn && queue.length > 0) {
-                console.log('No current turn but queue exists, processing next...');
-                await DB.redemptions.processNextTurn();
-                setTimeout(async () => {
-                  const newTurn = await DB.redemptions.getCurrentTurn();
-                  const newQueue = await DB.redemptions.getQueue();
-                  updateUI(newTurn, newQueue);
-                }, 500);
-                return;
-              }
-
-              updateUI(currentTurn, queue);
-            }
-
-            function updateUI(currentTurn, queue) {
-              const position = queue.findIndex(u => u.id === user.id) + 1;
-              
               if (currentTurn && currentTurn.id === user.id) {
                 queueInfo.style.display = 'none';
                 yourTurnInfo.style.display = 'flex';
-                queueModal.classList.remove('active');
                 startTimer();
 
                 const turnMessage = document.getElementById('your-turn-info').querySelector('p');
@@ -1717,7 +1703,6 @@
               else if (position > 0) {
                 queueInfo.style.display = 'flex';
                 yourTurnInfo.style.display = 'none';
-                queueModal.classList.remove('active');
                 if (timerInterval) clearInterval(timerInterval);
 
                 const queueText = document.getElementById('queue-text');
@@ -1730,7 +1715,6 @@
               else {
                 queueInfo.style.display = 'none';
                 yourTurnInfo.style.display = 'none';
-                queueModal.classList.remove('active');
                 if (timerInterval) clearInterval(timerInterval);
               }
             }

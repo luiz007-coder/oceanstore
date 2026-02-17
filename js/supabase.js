@@ -340,25 +340,15 @@ const DB = {
     
     async getQueue() {
       try {
-        const pending = await this.getPending();
-        const userPendingCounts = {};
-        pending.forEach(r => {
-          userPendingCounts[r.user_id] = (userPendingCounts[r.user_id] || 0) + 1;
-        });
-        
-        const userIds = Object.keys(userPendingCounts);
         const users = await DB.users.getAll();
-
-        const queueUsers = users
-          .filter(u => userIds.includes(u.id.toString()) && !u.banned)
-          .map(u => ({
-            ...u,
-            pending_count: userPendingCounts[u.id]
-          }))
-          .sort((a, b) => b.points - a.points);
+        const nonBannedUsers = users.filter(u => !u.banned);
         
-        console.log('Queue ordenada (maior para menor):', queueUsers.map(u => ({ nick: u.nick, points: u.points })));
-        return queueUsers;
+        console.log('All non-banned users:', nonBannedUsers.map(u => ({ nick: u.nick, points: u.points })));
+
+        const sortedUsers = nonBannedUsers.sort((a, b) => b.points - a.points);
+        
+        console.log('Sorted queue:', sortedUsers.map(u => ({ nick: u.nick, points: u.points })));
+        return sortedUsers;
       } catch (error) {
         console.error('Erro ao buscar fila:', error);
         return [];
@@ -398,12 +388,16 @@ const DB = {
     async processNextTurn() {
       try {
         const store = await DB.store.getStatus();
-        if (!store.is_open) return null;
+        if (!store.is_open) {
+          console.log('Store is closed, cannot process turn');
+          return null;
+        }
         
         const queue = await this.getQueue();
-        console.log('Queue for next turn:', queue);
+        console.log('Queue for next turn:', queue.map(u => ({ nick: u.nick, points: u.points })));
         
         if (queue.length === 0) {
+          console.log('Queue is empty, clearing current turn');
           await SupabaseClient.update('store_settings', 1, { 
             current_user_id: null,
             turn_start_time: null
@@ -412,7 +406,7 @@ const DB = {
         }
         
         const nextUser = queue[0];
-        console.log('Next user in turn:', nextUser);
+        console.log('Setting next user as current turn:', nextUser);
         
         const result = await SupabaseClient.update('store_settings', 1, { 
           current_user_id: nextUser.id,
