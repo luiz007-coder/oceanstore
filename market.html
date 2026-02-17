@@ -1354,6 +1354,23 @@
         
         ProfileHeader.init();
 
+        (async function checkCurrentTurn() {
+          const currentTurn = await DB.redemptions.getCurrentTurn();
+          const queue = await DB.redemptions.getQueue();
+          
+          if (!currentTurn && queue.length > 0 && storeOpen) {
+            await DB.redemptions.processNextTurn();
+          }
+
+          if (currentTurn && queue.length > 0) {
+            const userInQueue = queue.some(u => u.id === currentTurn.id);
+            if (!userInQueue) {
+              await DB.store.resetCurrentTurn();
+              await DB.redemptions.processNextTurn();
+            }
+          }
+        })();
+
         const user = SessionManager.getUser();
         let currentPoints = user.points;
         let storeOpen = false;
@@ -1528,9 +1545,19 @@
           }
 
           const currentTurn = await DB.redemptions.getCurrentTurn();
-          if (!currentTurn || currentTurn.id !== user.id) {
-            const position = await DB.rankings.getUserPosition(user.id);
-            Toast.show(`Opa, você não pode resgatar agora. Sua posição na fila é: #${position}`, 'error');
+
+          console.log('Current Turn:', currentTurn);
+          console.log('User:', user);
+          
+          if (!currentTurn) {
+            Toast.show('Ninguém está na vez no momento. Aguarde...', 'error');
+            return;
+          }
+          
+          if (currentTurn.id !== user.id) {
+            const queue = await DB.redemptions.getQueue();
+            const position = queue.findIndex(u => u.id === user.id) + 1;
+            Toast.show(`Opa, não é sua vez! Sua posição na fila é: #${position}`, 'error');
             return;
           }
 
@@ -1539,8 +1566,13 @@
             return;
           }
 
-          const userRedemptions = await DB.redemptions.getByUser(user.id);
           const reward = await DB.rewards.getById(id);
+          if (!reward) {
+            Toast.show('Recompensa não encontrada', 'error');
+            return;
+          }
+
+          const userRedemptions = await DB.redemptions.getByUser(user.id);
           
           const alreadyRedeemed = userRedemptions.some(r => 
             r.reward_id === id && r.status === 'approved'
@@ -1587,9 +1619,9 @@
             document.getElementById('progress-fill').style.width = Math.min((newPoints / 100) * 100, 100) + '%';
             updateProgressMessage(newPoints);
 
-            Toast.show('Resgate feito!', 'success');
+            Toast.show('Resgate feito com sucesso!', 'success');
 
-            await DB.redemptions.completeTurn(user.id);
+            await DB.redemptions.processNextTurn();
             await updateStoreAndQueue();
             await loadRewards();
 

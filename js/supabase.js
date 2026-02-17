@@ -341,12 +341,24 @@ const DB = {
     async getQueue() {
       try {
         const pending = await this.getPending();
-        const userIds = [...new Set(pending.map(r => r.user_id))];
+        const userPendingCounts = {};
+        pending.forEach(r => {
+          userPendingCounts[r.user_id] = (userPendingCounts[r.user_id] || 0) + 1;
+        });
         
+        const userIds = Object.keys(userPendingCounts);
+
         const users = await DB.users.getAll();
-        return users
-          .filter(u => userIds.includes(u.id) && !u.banned)
+
+        const queueUsers = users
+          .filter(u => userIds.includes(u.id.toString()) && !u.banned)
+          .map(u => ({
+            ...u,
+            pending_count: userPendingCounts[u.id]
+          }))
           .sort((a, b) => a.points - b.points);
+        
+        return queueUsers;
       } catch (error) {
         console.error('Erro ao buscar fila:', error);
         return [];
@@ -363,7 +375,16 @@ const DB = {
           select: 'id,nick,points'
         });
         
-        return user && user[0] ? user[0] : null;
+        if (user && user[0]) {
+          return user[0];
+        }
+
+        await SupabaseClient.update('store_settings', 1, { 
+          current_user_id: null,
+          turn_start_time: null
+        });
+        
+        return null;
       } catch (error) {
         console.error('Erro ao buscar vez atual:', error);
         return null;
@@ -376,6 +397,8 @@ const DB = {
         if (!store.is_open) return null;
         
         const queue = await this.getQueue();
+        console.log('Queue for next turn:', queue);
+        
         if (queue.length === 0) {
           await SupabaseClient.update('store_settings', 1, { 
             current_user_id: null,
@@ -385,6 +408,8 @@ const DB = {
         }
         
         const nextUser = queue[0];
+        console.log('Next user in turn:', nextUser);
+        
         await SupabaseClient.update('store_settings', 1, { 
           current_user_id: nextUser.id,
           turn_start_time: new Date().toISOString()
@@ -728,6 +753,19 @@ const DB = {
       } catch (error) {
         console.error('Erro ao salvar status da loja:', error);
         return null;
+      }
+    },
+
+    async resetCurrentTurn() {
+      try {
+        await SupabaseClient.update('store_settings', 1, { 
+          current_user_id: null,
+          turn_start_time: null
+        });
+        return true;
+      } catch (error) {
+        console.error('Erro ao resetar turno:', error);
+        return false;
       }
     },
     
