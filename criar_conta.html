@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OceanStore - Criar conta</title>
+  <link rel="icon" type="image/png" href="https://i.imgur.com/U9aXSQB.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --cyan-primary: #75afca;
+      --cyan-dark: #6095af;
+      --cyan-light: #7dd3fc;
+      --cyan-muted: #f0f9ff;
+      --white: #ffffff;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-500: #64748b;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1e293b;
+      --gray-900: #0f172a;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-image: url('https://i.imgur.com/puPtHKs.png');
+      background-position: center center;
+      background-repeat: repeat;
+      background-attachment: fixed;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .login-card {
+      background: var(--white);
+      border-radius: 21px;
+      padding: 18px 21px;
+      border: 2px solid var(--gray-200);
+      box-shadow: 0 20px 40px -12px rgba(0,0,0,0.1);
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+    }
+
+    .logo-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .logo h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--gray-800);
+      letter-spacing: -0.5px;
+    }
+
+    .info-box {
+      background: var(--cyan-muted);
+      border: 2px solid var(--cyan-light);
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 21px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .info-box svg {
+      width: 21px;
+      height: 21px;
+      color: var(--cyan-primary);
+      flex-shrink: 0;
+    }
+
+    .info-box p {
+      font-size: 12px;
+      color: var(--gray-700);
+      line-height: 1.5;
+    }
+
+    .info-box strong {
+      color: var(--cyan-primary);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-wrapper svg {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      color: var(--gray-400);
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 16px 16px 16px 48px;
+      font-size: 15px;
+      border: 2px solid var(--gray-200);
+      border-radius: 16px;
+      background: var(--white);
+      color: var(--gray-800);
+      transition: all 0.2s ease;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: var(--cyan-primary);
+      box-shadow: 0 0 0 4px var(--cyan-muted);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--cyan-primary);
+    }
+
+    .checkbox-group label {
+      margin-bottom: 0;
+      text-transform: none;
+      font-size: 14px;
+      font-weight: 400;
+    }
+
+    .btn {
+      font-family: 'Poppins', sans-serif;
+      width: 100%;
+      padding: 16px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan-primary), var(--cyan-dark));
+      color: var(--white);
+    }
+
+    .btn-primary:disabled {
+      background: var(--gray-300);
+      transform: none;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .btn-warning {
+      background: var(--warning);
+      color: white;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-code {
+      font-family: 'Courier New', monospace;
+      font-size: 24px;
+      font-weight: 700;
+      background: rgba(0,0,0,0.2);
+      padding: 4px 16px;
+      border-radius: 8px;
+      letter-spacing: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-block;
+    }
+
+    .btn-code:hover {
+      background: rgba(0,0,0,0.3);
+      transform: scale(1.02);
+    }
+
+    .btn-code:active {
+      transform: scale(0.98);
+    }
+
+    .timer-text {
+      font-size: 12px;
+      color: var(--gray-600);
+      margin-top: 8px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .error-message {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 16px;
+      padding: 16px 20px;
+      font-size: 14px;
+      color: var(--danger);
+      margin-bottom: 24px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .error-message.show {
+      display: flex;
+      animation: shake 0.3s ease;
+    }
+
+    .error-message svg {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      color: #dc2626;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .success-message {
+      background: #d1fae5;
+      border: 1px solid #a7f3d0;
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      color: #065f46;
+    }
+
+    .success-message.show {
+      display: flex;
+      animation: slideIn 0.3s ease;
+    }
+
+    .success-message svg {
+      width: 24px;
+      height: 24px;
+      color: #059669;
+      flex-shrink: 0;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .auth-links {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .auth-links a {
+      color: var(--cyan-primary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .auth-links a:hover {
+      text-decoration: underline;
+    }
+
+    .copy-feedback {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--gray-800);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 13px;
+      z-index: 1000;
+      animation: fadeInOut 2s ease;
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translate(-50%, 20px); }
+      15% { opacity: 1; transform: translate(-50%, 0); }
+      85% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, -20px); }
+    }
+
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 24px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="logo">
+        <div class="logo-icon">
+          <img src="https://i.imgur.com/U9aXSQB.png" alt="OceanStore">
+        </div>
+        <h1>OceanStore</h1>
+      </div>
+
+      <div class="info-box">
+        <svg viewBox="0 0 256 256" fill="currentColor">
+          <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"></path>
+        </svg>
+        <p><strong>APENAS MEMBROS DA EFE</strong> podem criar conta. Insira seu nick, crie uma senha e cole o código abaixo em sua missão do Habbo.</p>
+      </div>
+
+      <div class="error-message" id="register-error">
+        <svg viewBox="0 0 256 256" fill="currentColor">
+          <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-80V80a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm20,36a12,12,0,1,1-12-12A12,12,0,0,1,140,172Z"></path>
+        </svg>
+        <span id="register-error-text"></span>
+      </div>
+
+      <div class="success-message" id="register-success">
+        <svg viewBox="0 0 256 256" fill="currentColor">
+          <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm45.66-125.66a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,140.69l50.34-50.35A8,8,0,0,1,173.66,90.34Z"></path>
+        </svg>
+        <span id="register-success-text"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="register-nick">Nick do Habbo</label>
+        <div class="input-wrapper">
+          <svg viewBox="0 0 256 256" fill="currentColor">
+            <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216ZM80,108a12,12,0,1,1,12,12A12,12,0,0,1,80,108Zm96,0a12,12,0,1,1-12-12A12,12,0,0,1,176,108Zm-94.39,52a8,8,0,0,1,8.2-7.8,60.15,60.15,0,0,0,68.38,0,8,8,0,1,1,8.8,13.36,76.18,76.18,0,0,1-86,0A8,8,0,0,1,81.61,160Z"></path>
+          </svg>
+          <input type="text" id="register-nick" placeholder="Digite seu nick" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="register-password">Senha</label>
+        <div class="input-wrapper">
+          <svg viewBox="0 0 256 256" fill="currentColor">
+            <path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm-72,86.63V184a8,8,0,0,1-16,0V166.63a24,24,0,1,1,16,0ZM160,80H96V56a32,32,0,0,1,64,0Z"></path>
+          </svg>
+          <input type="password" id="register-password" placeholder="Crie uma senha (mínimo 6 caracteres)">
+        </div>
+      </div>
+
+      <div class="checkbox-group">
+        <input type="checkbox" id="remember-me">
+        <label for="remember-me">Manter conectado</label>
+      </div>
+
+      <div class="btn-container" id="register-btn-container">
+        <button class="btn btn-primary" id="btn-register" onclick="handleRegister()">
+          <span id="btn-register-text">CRIAR CONTA</span>
+        </button>
+        <div class="timer-text" id="register-timer-text"></div>
+      </div>
+
+      <div class="auth-links">
+        <a href="index.html">Voltar para o login</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/session.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    let verificationInterval = null;
+    let expiryTimer = null;
+    let timeLeft = 600;
+
+    function showCopyFeedback() {
+      const feedback = document.createElement('div');
+      feedback.className = 'copy-feedback';
+      feedback.textContent = 'Código copiado!';
+      document.body.appendChild(feedback);
+      setTimeout(() => feedback.remove(), 2000);
+    }
+
+    function copyCode(code) {
+      navigator.clipboard.writeText(code).then(showCopyFeedback);
+    }
+
+    function showError(message) {
+      const errorEl = document.getElementById('register-error');
+      const errorText = document.getElementById('register-error-text');
+      errorText.textContent = message;
+      errorEl.classList.add('show');
+      setTimeout(() => errorEl.classList.remove('show'), 5000);
+    }
+
+    function showSuccess(message) {
+      const successEl = document.getElementById('register-success');
+      const successText = document.getElementById('register-success-text');
+      successText.textContent = message;
+      successEl.classList.add('show');
+      setTimeout(() => successEl.classList.remove('show'), 3000);
+    }
+
+    function updateButtonState(state, code = '') {
+      const btn = document.getElementById('btn-register');
+      const btnText = document.getElementById('btn-register-text');
+      const timerText = document.getElementById('register-timer-text');
+      
+      switch(state) {
+        case 'initial':
+          btn.className = 'btn btn-primary';
+          btnText.textContent = 'CRIAR CONTA';
+          timerText.textContent = '';
+          btn.disabled = false;
+          break;
+          
+        case 'verifying':
+          btn.className = 'btn btn-warning';
+          btnText.innerHTML = `<span class="btn-code" onclick="copyCode('${code}')">${code}</span>`;
+          timerText.textContent = 'Código expira em: 10:00';
+          btn.disabled = true;
+          break;
+          
+        case 'success':
+          btn.className = 'btn btn-success';
+          btnText.textContent = 'REDIRECIONANDO...';
+          timerText.textContent = '';
+          btn.disabled = true;
+          break;
+          
+        case 'error':
+          btn.className = 'btn btn-danger';
+          btnText.textContent = 'TENTAR NOVAMENTE';
+          timerText.textContent = '';
+          btn.disabled = false;
+          break;
+      }
+    }
+
+    function updateTimer() {
+      timeLeft--;
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      document.getElementById('register-timer-text').textContent = 
+        `Código expira em: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      if (timeLeft <= 0) {
+        clearInterval(expiryTimer);
+        clearInterval(verificationInterval);
+        updateButtonState('error');
+        showError('Código expirado. Tente novamente.');
+      }
+    }
+
+    async function handleRegister() {
+      const nick = document.getElementById('register-nick').value.trim();
+      const password = document.getElementById('register-password').value;
+      const remember = document.getElementById('remember-me').checked;
+
+      if (!nick || !password) {
+        showError('Preencha todos os campos');
+        return;
+      }
+
+      if (password.length < 6) {
+        showError('A senha deve ter pelo menos 6 caracteres');
+        return;
+      }
+
+      try {
+        const result = await Auth.startRegistration(nick, password, remember);
+        
+        if (result.success) {
+          updateButtonState('verifying', result.code);
+          
+          timeLeft = 600;
+          if (expiryTimer) clearInterval(expiryTimer);
+          expiryTimer = setInterval(updateTimer, 1000);
+          
+          if (verificationInterval) clearInterval(verificationInterval);
+          verificationInterval = setInterval(checkVerification, 3000);
+        } else {
+          showError(result.error);
+        }
+      } catch (error) {
+        showError('Erro ao iniciar registro');
+      }
+    }
+
+    async function checkVerification() {
+      const result = await Auth.checkAndCompleteRegistration();
+      
+      if (result.success) {
+        clearInterval(verificationInterval);
+        clearInterval(expiryTimer);
+        updateButtonState('success');
+        showSuccess('Conta criada com sucesso!');
+        
+        setTimeout(() => {
+          window.location.href = 'overview.html';
+        }, 1500);
+      }
+    }
+
+    document.getElementById('register-nick').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleRegister();
+    });
+    document.getElementById('register-password').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleRegister();
+    });
+
+    window.addEventListener('beforeunload', function() {
+      if (verificationInterval) clearInterval(verificationInterval);
+      if (expiryTimer) clearInterval(expiryTimer);
+    });
+  </script>
+</body>
+</html>
