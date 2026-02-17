@@ -421,6 +421,16 @@ const DB = {
       }
     },
     
+    async getById(id) {
+      try {
+        const result = await SupabaseClient.select('rewards', { eq: { id } });
+        return result && result[0] ? result[0] : null;
+      } catch (error) {
+        console.error('Erro ao buscar recompensa:', error);
+        return null;
+      }
+    },
+    
     async getByCategory(category) {
       try {
         return await SupabaseClient.select('rewards', { eq: { category } });
@@ -754,6 +764,7 @@ const DB = {
             turn_start_time: null
           });
           
+          console.log('Pontos resetados. Loja fechada até', nextDate.toLocaleDateString());
           return true;
         }
         return false;

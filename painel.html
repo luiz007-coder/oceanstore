@@ -1490,12 +1490,9 @@
           </div>
           <div class="form-group full-width">
             <p style="color: var(--gray-500); font-size: 13px; margin-bottom: 12px;">
-              ℹ️ A loja abre automaticamente todo dia 5 do mês e fecha após 5 dias (dia 10).
+              A loja abre automaticamente todo dia 5 do mês e fecha após 5 dias (dia 10).
             </p>
             <button class="btn btn-primary" onclick="saveStoreSettings()">
-              <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor">
-                <path d="M216,96v96a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V64A16,16,0,0,1,56,48h96a8,8,0,0,1,5.66,2.34l56,56A8,8,0,0,1,216,112Zm-48,28a12,12,0,1,0-12,12A12,12,0,0,0,168,124Z"></path>
-              </svg>
               Salvar configurações
             </button>
           </div>
@@ -2300,13 +2297,13 @@
               
               if (isOpen) {
                 await DB.redemptions.processNextTurn();
-                Toast.show('✅ Loja aberta! Fecha automaticamente dia 10.', 'success');
+                Toast.show('Loja aberta! Fecha automaticamente dia 10.', 'success');
               } else {
                 if (nextOpening) {
                   const date = new Date(nextOpening).toLocaleDateString('pt-BR');
-                  Toast.show(`🔴 Loja fechada. Próxima abertura: ${date}`, 'success');
+                  Toast.show(`Loja fechada. Próxima abertura: ${date}`, 'success');
                 } else {
-                  Toast.show('🔴 Loja fechada. Configurações salvas!', 'success');
+                  Toast.show('Loja fechada. Configurações salvas!', 'success');
                 }
               }
               

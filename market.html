@@ -1529,12 +1529,34 @@
 
           const currentTurn = await DB.redemptions.getCurrentTurn();
           if (!currentTurn || currentTurn.id !== user.id) {
-            Toast.show('Aguarde sua vez na fila para resgatar', 'error');
+            const position = await DB.rankings.getUserPosition(user.id);
+            Toast.show(`Opa, você não pode resgatar agora. Sua posição na fila é: #${position}`, 'error');
             return;
           }
 
           if (currentPoints < cost) {
             Toast.show('Pontos insuficientes', 'error');
+            return;
+          }
+
+          const userRedemptions = await DB.redemptions.getByUser(user.id);
+          const reward = await DB.rewards.getById(id);
+          
+          const alreadyRedeemed = userRedemptions.some(r => 
+            r.reward_id === id && r.status === 'approved'
+          );
+          
+          if (alreadyRedeemed) {
+            Toast.show('Você já resgatou este item! Limite: 1 por item', 'error');
+            return;
+          }
+
+          const categoryRedemptions = userRedemptions.filter(r => {
+            return r.reward_category === reward.category && r.status === 'approved';
+          }).length;
+          
+          if (categoryRedemptions >= 1) {
+            Toast.show(`Você já resgatou um item da categoria ${reward.category}! Limite: 1 por categoria`, 'error');
             return;
           }
           
@@ -1545,6 +1567,7 @@
               user_id: user.id,
               reward_id: id,
               reward_name: name,
+              reward_category: reward.category,
               cost: cost,
               status: 'pending',
               created_at: new Date().toISOString()
@@ -1564,7 +1587,7 @@
             document.getElementById('progress-fill').style.width = Math.min((newPoints / 100) * 100, 100) + '%';
             updateProgressMessage(newPoints);
 
-            Toast.show('Resgate solicitado com sucesso!', 'success');
+            Toast.show('Resgate feito!', 'success');
 
             await DB.redemptions.completeTurn(user.id);
             await updateStoreAndQueue();
@@ -1634,11 +1657,18 @@
                 yourTurnInfo.style.display = 'flex';
                 queueModal.classList.remove('active');
                 startTimer();
+
+                Toast.show('É a sua vez! Você tem 1 hora para resgatar.', 'success', 5000);
+                
               } else if (position > 0) {
                 queueInfo.style.display = 'flex';
                 yourTurnInfo.style.display = 'none';
                 queueModal.classList.remove('active');
                 if (timerInterval) clearInterval(timerInterval);
+
+                const queueText = document.getElementById('queue-text');
+                queueText.innerHTML = `Aguardando sua vez na fila... Sua posição: <strong>#${position}</strong>`;
+                
               } else {
                 queueInfo.style.display = 'none';
                 yourTurnInfo.style.display = 'none';
