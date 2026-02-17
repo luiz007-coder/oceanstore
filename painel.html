@@ -1439,9 +1439,6 @@
           <div>
             <span id="current-turn-info"></span>
             <button class="btn btn-primary" onclick="skipTurn()" id="skip-turn-btn">
-              <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor">
-                <path d="M232,128a104,104,0,1,1-32.26-74.27,8,8,0,1,1-11.48,11.14A88,88,0,1,0,208,183.67V152a8,8,0,0,1,16,0v48a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h31.2A103.94,103.94,0,0,1,232,128Z"></path>
-              </svg>
               Pular vez
             </button>
           </div>
@@ -1453,7 +1450,7 @@
           </div>
           <div class="turn-info">
             <span class="label">Tempo restante:</span>
-            <span class="timer" id="turn-timer">60:00</span>
+            <span class="timer" id="turn-timer">30:00</span>
           </div>
         </div>
         <div class="loading" id="queue-loading">Carregando fila...</div>
@@ -1682,7 +1679,6 @@
   <script src="js/supabase.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/profile-header.js"></script>
-  <script src="js/store-manager.js"></script>
   <script>
     (function() {
       if (!SessionManager.isAuthenticated()) {
@@ -2336,18 +2332,26 @@
                   currentBox.style.display = 'flex';
                   if (skipBtn) skipBtn.disabled = false;
                   turnInfo.innerHTML = `Vez: ${currentTurn.nick}`;
-                  
+
                   if (timerInterval) clearInterval(timerInterval);
                   startTimer(store.turn_start_time);
                 } else {
                   currentBox.style.display = 'none';
                   if (skipBtn) skipBtn.disabled = true;
                   turnInfo.innerHTML = 'Aguardando próximo turno';
+                  if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                  }
                 }
               } else {
                 currentBox.style.display = 'none';
                 if (skipBtn) skipBtn.disabled = true;
-                turnInfo.innerHTML = '🔴 Loja fechada';
+                turnInfo.innerHTML = 'Loja fechada';
+                if (timerInterval) {
+                  clearInterval(timerInterval);
+                  timerInterval = null;
+                }
               }
 
               tbody.innerHTML = queue.map((user, index) => {
@@ -2370,37 +2374,69 @@
           };
 
           function startTimer(startTime) {
-            if (timerInterval) clearInterval(timerInterval);
+            if (timerInterval) {
+              clearInterval(timerInterval);
+              timerInterval = null;
+            }
+
+            const timerEl = document.getElementById('turn-timer');
+            if (timerEl) timerEl.textContent = '30:00';
             
             timerInterval = setInterval(async () => {
               try {
-                const remaining = await DB.store.getRemainingTime();
-                const mins = Math.floor(remaining / 60);
-                const secs = remaining % 60;
+                const remainingSeconds = await DB.store.getRemainingTime();
+                const mins = Math.floor(remainingSeconds / 60);
+                const secs = remainingSeconds % 60;
                 const timerEl = document.getElementById('turn-timer');
+                
                 if (timerEl) {
                   timerEl.textContent = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
                 }
                 
-                if (remaining <= 0) {
+                if (remainingSeconds <= 0) {
                   clearInterval(timerInterval);
+                  timerInterval = null;
+                  
                   await DB.redemptions.processNextTurn();
                   await loadQueue();
                   Toast.show('Tempo esgotado! Vez pulada automaticamente.', 'warning');
                 }
               } catch (error) {
-                console.error('Erro no timer:', error);
+                console.error('Erro no timer admin:', error);
               }
             }, 1000);
           }
 
           window.skipTurn = async function() {
+            console.log('=== PULANDO VEZ ===');
+            
             showConfirm('Pular vez', 'Pular a vez do usuário atual?', async () => {
               try {
-                await DB.redemptions.processNextTurn();
-                Toast.show('Vez pulada com sucesso!', 'success');
+                const store = await DB.store.getStatus();
+                console.log('Store status before skip:', store);
+                
+                if (!store.is_open) {
+                  Toast.show('A loja está fechada', 'error');
+                  return;
+                }
+
+                const nextUser = await DB.redemptions.processNextTurn();
+                console.log('Next user after skip:', nextUser);
+                
+                if (nextUser) {
+                  Toast.show(`Vez pulada! Agora é a vez de ${nextUser.nick}`, 'success');
+                } else {
+                  Toast.show('Fila vazia!', 'warning');
+                }
+
                 await loadQueue();
                 await loadRedemptions();
+
+                if (timerInterval) {
+                  clearInterval(timerInterval);
+                  timerInterval = null;
+                }
+                
               } catch (error) {
                 console.error('Erro ao pular vez:', error);
                 Toast.show('Erro ao pular vez', 'error');

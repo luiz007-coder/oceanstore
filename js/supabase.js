@@ -338,17 +338,12 @@ const DB = {
       }
     },
     
+    // FILA ORDENADA POR PONTOS (MAIOR PARA MENOR)
     async getQueue() {
       try {
         const users = await DB.users.getAll();
         const nonBannedUsers = users.filter(u => !u.banned);
-        
-        console.log('All non-banned users:', nonBannedUsers.map(u => ({ nick: u.nick, points: u.points })));
-
-        const sortedUsers = nonBannedUsers.sort((a, b) => b.points - a.points);
-        
-        console.log('Sorted queue:', sortedUsers.map(u => ({ nick: u.nick, points: u.points })));
-        return sortedUsers;
+        return nonBannedUsers.sort((a, b) => b.points - a.points);
       } catch (error) {
         console.error('Erro ao buscar fila:', error);
         return [];
@@ -365,39 +360,18 @@ const DB = {
           select: 'id,nick,points'
         });
         
-        if (user && user[0]) {
-          return user[0];
-        }
-
-        await SupabaseClient.update('store_settings', 1, { 
-          current_user_id: null,
-          turn_start_time: null
-        });
-
-        setTimeout(async () => {
-          await DB.redemptions.processNextTurn();
-        }, 100);
-        
-        return null;
+        return user && user[0] ? user[0] : null;
       } catch (error) {
         console.error('Erro ao buscar vez atual:', error);
         return null;
       }
-      },
+    },
     
     async processNextTurn() {
       try {
         const store = await DB.store.getStatus();
+        
         if (!store.is_open) {
-          console.log('Store is closed, cannot process turn');
-          return null;
-        }
-        
-        const queue = await this.getQueue();
-        console.log('Queue for next turn:', queue.map(u => ({ nick: u.nick, points: u.points })));
-        
-        if (queue.length === 0) {
-          console.log('Queue is empty, clearing current turn');
           await SupabaseClient.update('store_settings', 1, { 
             current_user_id: null,
             turn_start_time: null
@@ -405,20 +379,53 @@ const DB = {
           return null;
         }
         
-        const nextUser = queue[0];
-        console.log('Setting next user as current turn:', nextUser);
-        
-        const result = await SupabaseClient.update('store_settings', 1, { 
-          current_user_id: nextUser.id,
-          turn_start_time: new Date().toISOString()
-        });
+        const queue = await DB.redemptions.getQueue();
+        console.log('Queue atual:', queue.map(u => ({ nick: u.nick, points: u.points })));
 
-        const updatedStore = await this.getStatus();
-        console.log('Updated store status:', updatedStore);
+        if (queue.length === 0) {
+          await SupabaseClient.update('store_settings', 1, { 
+            current_user_id: null,
+            turn_start_time: null
+          });
+          return null;
+        }
+
+        const currentTurn = await DB.redemptions.getCurrentTurn();
         
-        return nextUser;
+        if (currentTurn) {
+          const currentIndex = queue.findIndex(u => u.id === currentTurn.id);
+          const nextIndex = currentIndex + 1;
+          
+          if (nextIndex < queue.length) {
+            const nextUser = queue[nextIndex];
+            await SupabaseClient.update('store_settings', 1, { 
+              current_user_id: nextUser.id,
+              turn_start_time: new Date().toISOString()
+            });
+            console.log('Próximo da fila:', nextUser.nick);
+            return nextUser;
+          } else {
+            // Fim da fila, volta para o primeiro
+            const firstUser = queue[0];
+            await SupabaseClient.update('store_settings', 1, { 
+              current_user_id: firstUser.id,
+              turn_start_time: new Date().toISOString()
+            });
+            console.log('Fim da fila, voltando para o primeiro:', firstUser.nick);
+            return firstUser;
+          }
+        } else {
+          // Não tem ninguém jogando, pega o primeiro da fila
+          const firstUser = queue[0];
+          await SupabaseClient.update('store_settings', 1, { 
+            current_user_id: firstUser.id,
+            turn_start_time: new Date().toISOString()
+          });
+          console.log('Primeiro da fila:', firstUser.nick);
+          return firstUser;
+        }
       } catch (error) {
-        console.error('Erro ao processar próximo turno:', error);
+        console.error('Erro no processNextTurn:', error);
         return null;
       }
     },
@@ -427,12 +434,20 @@ const DB = {
       try {
         const store = await DB.store.getStatus();
         if (store.current_user_id !== userId) return false;
-        
         await this.processNextTurn();
         return true;
       } catch (error) {
         console.error('Erro ao completar turno:', error);
         return false;
+      }
+    },
+    
+    async skipTurn() {
+      try {
+        return await this.processNextTurn();
+      } catch (error) {
+        console.error('Erro ao pular turno:', error);
+        return null;
       }
     }
   },
@@ -585,9 +600,7 @@ const DB = {
         
         const result = await SupabaseClient.select('user_missions', {
           select: 'id',
-          eq: { status: 'approved' },
-          gte: { completed_at: today.toISOString() },
-          lt: { completed_at: tomorrow.toISOString() }
+          eq: { status: 'approved' }
         });
         
         return result ? result.length : 0;
@@ -701,16 +714,13 @@ const DB = {
     async getStatus() {
       try {
         const data = await SupabaseClient.select('store_settings', { eq: { id: 1 } });
-        const status = (data && data[0]) || { 
+        return (data && data[0]) || { 
           is_open: false, 
           next_open_date: null,
           current_user_id: null,
           turn_start_time: null,
-          auto_close_date: null,
-          last_reset_date: null
+          auto_close_date: null
         };
-        console.log('Store status from DB:', status);
-        return status;
       } catch (error) {
         console.error('Erro ao buscar status da loja:', error);
         return { is_open: false, next_open_date: null, current_user_id: null };
@@ -723,7 +733,6 @@ const DB = {
 
         if (!isOpen) {
           const users = await DB.users.getAll();
-          
           for (const user of users) {
             await DB.users.update(user.id, { points: 0 });
           }
@@ -742,18 +751,12 @@ const DB = {
           }
           
           nextOpenDate = nextDate.toISOString();
-          
-          Toast.show(`Pontos resetados! Próxima abertura: ${nextDate.toLocaleDateString('pt-BR')}`, 'success');
         }
 
         if (isOpen) {
           const closeDate = new Date();
           closeDate.setDate(closeDate.getDate() + 5);
           autoCloseDate = closeDate.toISOString();
-
-          setTimeout(async () => {
-            await DB.redemptions.processNextTurn();
-          }, 100);
         }
         
         const existing = await SupabaseClient.select('store_settings', { eq: { id: 1 } });
@@ -763,8 +766,8 @@ const DB = {
             is_open: isOpen, 
             next_open_date: nextOpenDate,
             auto_close_date: autoCloseDate,
-            current_user_id: isOpen ? null : null,
-            turn_start_time: isOpen ? null : null,
+            current_user_id: null,
+            turn_start_time: null,
             updated_at: new Date().toISOString()
           });
         } else {
@@ -775,26 +778,12 @@ const DB = {
             auto_close_date: autoCloseDate,
             current_user_id: null,
             turn_start_time: null,
-            last_reset_date: new Date().toISOString(),
             created_at: new Date().toISOString()
           });
         }
       } catch (error) {
         console.error('Erro ao salvar status da loja:', error);
         return null;
-      }
-    },
-
-    async resetCurrentTurn() {
-      try {
-        await SupabaseClient.update('store_settings', 1, { 
-          current_user_id: null,
-          turn_start_time: null
-        });
-        return true;
-      } catch (error) {
-        console.error('Erro ao resetar turno:', error);
-        return false;
       }
     },
     
@@ -824,13 +813,6 @@ const DB = {
           }
           
           await this.setStatus(false, nextDate.toISOString());
-          
-          console.log('Pontos resetados. Loja fechada até', nextDate.toLocaleDateString());
-
-          if (typeof Toast !== 'undefined') {
-            Toast.show(`Loja fechada! Pontos resetados. Próxima abertura: ${nextDate.toLocaleDateString('pt-BR')}`, 'warning');
-          }
-          
           return true;
         }
         return false;
@@ -854,11 +836,6 @@ const DB = {
             closeDate.setDate(closeDate.getDate() + 5);
             
             await this.setStatus(true, null);
-
-            await SupabaseClient.update('store_settings', 1, { 
-              auto_close_date: closeDate.toISOString()
-            });
-            
             return true;
           }
         }
@@ -876,10 +853,10 @@ const DB = {
         
         const startTime = new Date(store.turn_start_time).getTime();
         const now = new Date().getTime();
-        const elapsed = Math.floor((now - startTime) / 1000);
-        const remaining = 3600 - elapsed;
-        
-        return remaining > 0 ? remaining : 0;
+        const elapsedSeconds = Math.floor((now - startTime) / 1000);
+        const remainingSeconds = 1800 - elapsedSeconds;
+
+        return remainingSeconds > 0 ? remainingSeconds : 0;
       } catch (error) {
         console.error('Erro ao calcular tempo restante:', error);
         return 0;
@@ -920,40 +897,19 @@ const DB = {
     async calculateNextOpenDate() {
       const now = new Date();
       const currentDay = now.getDate();
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
       
       let nextOpenDate;
-
       if (currentDay < 5) {
-        nextOpenDate = new Date(currentYear, currentMonth, 5, 0, 0, 0);
-      } 
-      else {
-        if (currentMonth === 11) {
-          nextOpenDate = new Date(currentYear + 1, 0, 5, 0, 0, 0);
+        nextOpenDate = new Date(now.getFullYear(), now.getMonth(), 5, 0, 0, 0);
+      } else {
+        if (now.getMonth() === 11) {
+          nextOpenDate = new Date(now.getFullYear() + 1, 0, 5, 0, 0, 0);
         } else {
-          nextOpenDate = new Date(currentYear, currentMonth + 1, 5, 0, 0, 0);
+          nextOpenDate = new Date(now.getFullYear(), now.getMonth() + 1, 5, 0, 0, 0);
         }
       }
       
       return nextOpenDate.toISOString();
-    },
-    
-    async checkTurnExpired() {
-      try {
-        const store = await this.getStatus();
-        if (!store.is_open || !store.current_user_id || !store.turn_start_time) return false;
-        
-        const remaining = await this.getRemainingTime();
-        if (remaining <= 0) {
-          await DB.redemptions.processNextTurn();
-          return true;
-        }
-        return false;
-      } catch (error) {
-        console.error('Erro ao verificar turno expirado:', error);
-        return false;
-      }
     }
   }
 };
