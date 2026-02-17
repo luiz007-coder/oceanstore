@@ -396,6 +396,28 @@
       border: 2px solid var(--category-color);
       border-bottom: 5px solid var(--category-color);
     }
+
+    .info-box.warning-box {
+      background: #fff3cd;
+      border: 2px solid #ffeeba;
+      border-radius: 12px;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .info-box.warning-box i {
+      color: #856404;
+    }
+
+    .info-box.warning-box strong {
+      color: #856404;
+    }
+
+    .info-box.warning-box p {
+      color: #856404;
+    }
   </style>
 </head>
 <body>
@@ -459,6 +481,17 @@
         <div class="label">Seu progresso</div>
         <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width: 0%"></div></div>
         <div class="progress-message" id="progress-message"></div>
+      </div>
+    </div>
+
+    <div class="info-box warning-box" style="background: #fff3cd; border-color: #ffeeba; margin-bottom: 30px; margin-top: -10px;">
+      <i class="ph ph-info" style="font-size: 24px; color: #856404;"></i>
+      <div>
+        <strong style="color: #856404; display: block; margin-bottom: 5px;">ATENÇÃO</strong>
+        <p style="color: #856404; font-size: 13px; margin: 0;">
+          Os pontos são resetados automaticamente sempre que a loja fechar. 
+          Aproveite seus pontos enquanto a loja estiver aberta!
+        </p>
       </div>
     </div>
 
