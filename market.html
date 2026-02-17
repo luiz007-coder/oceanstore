@@ -1358,18 +1358,12 @@
           const store = await DB.store.getStatus();
           const queue = await DB.redemptions.getQueue();
           const currentTurn = await DB.redemptions.getCurrentTurn();
-
-          if (store.is_open) {
-            if (!currentTurn && queue.length > 0) {
-              await DB.redemptions.processNextTurn();
-            }
-
-            if (currentTurn && queue.length > 0) {
-              const firstInQueue = queue[0];
-              if (currentTurn.id !== firstInQueue.id) {
-                await DB.redemptions.processNextTurn();
-              }
-            }
+          
+          console.log('Initial check:', { storeOpen: store.is_open, queueLength: queue.length, currentTurn });
+          
+          if (store.is_open && queue.length > 0 && !currentTurn) {
+            console.log('No current turn but queue exists, processing next...');
+            await DB.redemptions.processNextTurn();
           }
         })();
 
@@ -1650,6 +1644,11 @@
             const position = queue.findIndex(u => u.id === user.id) + 1;
             const currentTurn = await DB.redemptions.getCurrentTurn();
             
+            console.log('Queue:', queue);
+            console.log('Current turn:', currentTurn);
+            console.log('User position:', position);
+            console.log('User ID:', user.id);
+            
             document.getElementById('modal-position').textContent = `#${position || 0}`;
             document.getElementById('user-position').textContent = `#${position || 0}`;
             
@@ -1688,6 +1687,23 @@
             } else {
               banner.style.display = 'none';
 
+              if (!currentTurn && queue.length > 0) {
+                console.log('No current turn but queue exists, processing next...');
+                await DB.redemptions.processNextTurn();
+                setTimeout(async () => {
+                  const newTurn = await DB.redemptions.getCurrentTurn();
+                  const newQueue = await DB.redemptions.getQueue();
+                  updateUI(newTurn, newQueue);
+                }, 500);
+                return;
+              }
+
+              updateUI(currentTurn, queue);
+            }
+
+            function updateUI(currentTurn, queue) {
+              const position = queue.findIndex(u => u.id === user.id) + 1;
+              
               if (currentTurn && currentTurn.id === user.id) {
                 queueInfo.style.display = 'none';
                 yourTurnInfo.style.display = 'flex';

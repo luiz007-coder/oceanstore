@@ -383,13 +383,17 @@ const DB = {
           current_user_id: null,
           turn_start_time: null
         });
+
+        setTimeout(async () => {
+          await DB.redemptions.processNextTurn();
+        }, 100);
         
         return null;
       } catch (error) {
         console.error('Erro ao buscar vez atual:', error);
         return null;
       }
-    },
+      },
     
     async processNextTurn() {
       try {
@@ -410,10 +414,13 @@ const DB = {
         const nextUser = queue[0];
         console.log('Next user in turn:', nextUser);
         
-        await SupabaseClient.update('store_settings', 1, { 
+        const result = await SupabaseClient.update('store_settings', 1, { 
           current_user_id: nextUser.id,
           turn_start_time: new Date().toISOString()
         });
+
+        const updatedStore = await this.getStatus();
+        console.log('Updated store status:', updatedStore);
         
         return nextUser;
       } catch (error) {
@@ -700,7 +707,7 @@ const DB = {
     async getStatus() {
       try {
         const data = await SupabaseClient.select('store_settings', { eq: { id: 1 } });
-        return (data && data[0]) || { 
+        const status = (data && data[0]) || { 
           is_open: false, 
           next_open_date: null,
           current_user_id: null,
@@ -708,6 +715,8 @@ const DB = {
           auto_close_date: null,
           last_reset_date: null
         };
+        console.log('Store status from DB:', status);
+        return status;
       } catch (error) {
         console.error('Erro ao buscar status da loja:', error);
         return { is_open: false, next_open_date: null, current_user_id: null };
