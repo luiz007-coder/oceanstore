@@ -444,6 +444,47 @@
         right: 15px;
       }
     }
+
+    .reward-availability {
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+    .availability {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+
+    .availability.unlimited {
+      background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+      color: #065f46;
+      border: 2px solid #10b981;
+    }
+
+    .availability.available {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 2px solid #3b82f6;
+    }
+
+    .availability.soldout {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 2px solid #ef4444;
+    }
+
+    .reward-card.soldout {
+      opacity: 0.7;
+      filter: grayscale(0.5);
+    }
+
+    .reward-card.soldout .reward-footer button {
+      background: #6b7280;
+      color: white;
+      opacity: 0.8;
+    }
   </style>
 </head>
 <body>
@@ -637,17 +678,31 @@
                 </div>
                 <div class="rewards-grid">`;
 
-              catRewards.forEach(reward => {
+              for (const reward of catRewards) {
+                const available = await DB.rewards.getAvailableCount(reward.id);
+                const isAvailable = available > 0;
                 const canAfford = currentPoints >= reward.cost;
-                const canRedeem = storeOpen && canAfford;
+                const canRedeem = storeOpen && canAfford && isAvailable;
+
+                let availabilityText = '';
+                if (reward.quantity === null) {
+                  availabilityText = '<span class="availability unlimited">Ilimitado</span>';
+                } else if (available > 0) {
+                  availabilityText = `<span class="availability available">${available} disponível(is)</span>`;
+                } else {
+                  availabilityText = '<span class="availability soldout">Esgotado</span>';
+                }
                 
-                html += `<div class="reward-card category-${reward.category} ${!canAfford ? 'locked' : ''}">
+                html += `<div class="reward-card category-${reward.category} ${!canAfford ? 'locked' : ''} ${!isAvailable ? 'soldout' : ''}">
                   <div class="reward-icon">
                     ${reward.image_url ? `<img src="${reward.image_url}" alt="${reward.name}">` : '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M216,72H178.83L200.3,35.5a8,8,0,0,0-13.7-8.27L164.41,64H91.59L69.4,27.23a8,8,0,1,0-13.7,8.27L77.17,72H40A16,16,0,0,0,24,88V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V88A16,16,0,0,0,216,72Z"></path></svg>'}
                   </div>
                   <div class="reward-info">
                     <h3>${reward.name}</h3>
                     <p>${reward.description || 'Recompensa exclusiva'}</p>
+                    <div class="reward-availability">
+                      ${availabilityText}
+                    </div>
                   </div>
                   <div class="reward-footer">
                     <div class="reward-cost">
@@ -657,11 +712,11 @@
                     <button class="btn ${canRedeem ? 'btn-primary' : 'btn-locked'}" 
                             onclick="purchase('${reward.id}', '${reward.name.replace(/'/g, "\\'")}', ${reward.cost})" 
                             ${!canRedeem ? 'disabled' : ''}>
-                      ${!storeOpen ? 'Loja fechada' : !canAfford ? 'Pontos insuficientes' : 'Resgatar'}
+                      ${!storeOpen ? 'Loja fechada' : !isAvailable ? 'Esgotado' : !canAfford ? 'Pontos insuficientes' : 'Resgatar'}
                     </button>
                   </div>
                 </div>`;
-              });
+              }
               html += `</div></div>`;
             }
             container.innerHTML = html;
@@ -674,6 +729,13 @@
 
         window.purchase = async function(id, name, cost) {
           if (!storeOpen) { Toast.show('A loja está fechada no momento', 'error'); return; }
+
+          const isAvailable = await DB.rewards.checkAvailability(id);
+          if (!isAvailable) {
+            Toast.show('Este item está esgotado!', 'error');
+            await loadRewards();
+            return;
+          }
 
           const currentTurn = await DB.redemptions.getCurrentTurn();
           if (!currentTurn) { Toast.show('Ninguém está na vez no momento.', 'error'); return; }
@@ -699,6 +761,8 @@
             const redemption = { user_id: user.id, reward_id: id, reward_name: name, reward_category: reward.category, cost: cost, status: 'pending', created_at: new Date().toISOString() };
             await DB.redemptions.create(redemption);
 
+            await DB.rewards.incrementSold(id);
+
             const newPoints = currentPoints - cost;
             await DB.users.update(user.id, { points: newPoints });
             
@@ -715,7 +779,7 @@
             
             updateProgressMessage(newPoints);
 
-            Toast.show('Resgate feito com sucesso!', 'success');
+            Toast.show('Resgate feito!', 'success');
 
             await DB.redemptions.processNextTurn();
             await updateUI();

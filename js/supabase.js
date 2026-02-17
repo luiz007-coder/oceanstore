@@ -503,6 +503,57 @@ const DB = {
         console.error('Erro ao deletar recompensa:', error);
         throw error;
       }
+    },
+
+    async updateQuantity(id, quantity) {
+      try {
+        return await SupabaseClient.update('rewards', id, { quantity });
+      } catch (error) {
+        console.error('Erro ao atualizar quantidade:', error);
+        throw error;
+      }
+    },
+
+    async incrementSold(id) {
+      try {
+        const reward = await this.getById(id);
+        if (!reward) throw new Error('Recompensa não encontrada');
+        
+        const newSoldCount = (reward.sold_count || 0) + 1;
+        return await SupabaseClient.update('rewards', id, { sold_count: newSoldCount });
+      } catch (error) {
+        console.error('Erro ao incrementar vendas:', error);
+        throw error;
+      }
+    },
+
+    async checkAvailability(id) {
+      try {
+        const reward = await this.getById(id);
+        if (!reward) return false;
+
+        if (reward.quantity === null) return true;
+
+        const sold = reward.sold_count || 0;
+        return sold < reward.quantity;
+      } catch (error) {
+        console.error('Erro ao verificar disponibilidade:', error);
+        return false;
+      }
+    },
+
+    async getAvailableCount(id) {
+      try {
+        const reward = await this.getById(id);
+        if (!reward) return 0;
+        if (reward.quantity === null) return Infinity; // Ilimitado
+        
+        const sold = reward.sold_count || 0;
+        return Math.max(0, reward.quantity - sold);
+      } catch (error) {
+        console.error('Erro ao contar disponíveis:', error);
+        return 0;
+      }
     }
   },
 

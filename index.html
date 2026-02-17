@@ -304,7 +304,7 @@
         padding: 24px 16px;
       }
     }
-    
+
     .selo-autenticidade {
       position: fixed;
       bottom: -3px;
@@ -423,7 +423,7 @@
         const result = await Auth.login(nick, password, remember);
         
         if (result.success) {
-          showSuccess('Login realizado com sucesso!');
+          showSuccess('Login realizado!');
           setTimeout(() => {
             window.location.href = 'overview.html';
           }, 1000);

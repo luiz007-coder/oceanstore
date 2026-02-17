@@ -1062,7 +1062,7 @@
         width: 30px;
       }
     }
-    
+
     .selo-autenticidade {
       position: fixed;
       bottom: -3px;
@@ -1409,7 +1409,7 @@
               try {
                 await DB.missions.submit(user.id, missionId, proofUrl);
                 
-                showAlert('success', 'Missão submetida com sucesso! Aguarde aprovação.');
+                showAlert('success', 'Missão enviada! Aguarde aprovação.');
                 document.getElementById('mission').value = '';
                 document.getElementById('proof').value = '';
 

@@ -1232,7 +1232,7 @@
         width: 30px;
       }
     }
-    
+
     .selo-autenticidade {
       position: fixed;
       bottom: -3px;
@@ -1628,6 +1628,11 @@
         <label for="reward-image">URL da Imagem</label>
         <input type="text" id="reward-image" placeholder="https://i.imgur.com/imagem.png">
       </div>
+      <div class="form-group">
+        <label for="reward-quantity">Quantidade em estoque</label>
+        <input type="number" id="reward-quantity" placeholder="Deixe em branco para ilimitado" min="0">
+        <p class="help-text" style="font-size: 11px; color: var(--gray-500); margin-top: 4px;">* Deixe em branco para estoque ilimitado</p>
+      </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeRewardModal()">Cancelar</button>
         <button class="btn btn-primary" onclick="saveReward()">Salvar</button>
@@ -1804,10 +1809,10 @@
               const missionData = { name, description: description || null, points };
               if (editingMissionId) {
                 await DB.missions.update(editingMissionId, missionData);
-                Toast.show('Missão atualizada com sucesso!', 'success');
+                Toast.show('Missão atualizada!', 'success');
               } else {
                 await DB.missions.create(missionData);
-                Toast.show('Missão criada com sucesso!', 'success');
+                Toast.show('Missão criada!', 'success');
               }
               await loadMissions();
               closeMissionModal();
@@ -1882,7 +1887,7 @@
             showConfirm('Excluir missão', 'Tem certeza que deseja excluir esta missão?', async () => {
               try {
                 await DB.missions.delete(id);
-                Toast.show('Missão excluída com sucesso!', 'success');
+                Toast.show('Missão excluída!', 'success');
                 await loadMissions();
               } catch (error) {
                 console.error('Erro ao excluir missão:', error);
@@ -1956,7 +1961,7 @@
               try {
                 const admin = SessionManager.getUser();
                 await DB.missions.approve(id, admin.id);
-                Toast.show('Missão aprovada com sucesso!', 'success');
+                Toast.show('Missão aprovada!', 'success');
                 await loadPendingMissions();
                 await loadUsers();
                 await loadStats();
@@ -1990,7 +1995,7 @@
               const admin = SessionManager.getUser();
               await DB.missions.reject(currentRejectId, reason, admin.id);
               closeRejectModal();
-              Toast.show('Missão rejeitada com sucesso!', 'success');
+              Toast.show('Missão rejeitada!', 'success');
               await loadPendingMissions();
             } catch (error) {
               console.error('Erro ao rejeitar missão:', error);
@@ -2008,6 +2013,7 @@
                 document.getElementById('reward-category').value = reward.category;
                 document.getElementById('reward-cost').value = reward.cost;
                 document.getElementById('reward-image').value = reward.image_url || '';
+                document.getElementById('reward-quantity').value = reward.quantity === null ? '' : reward.quantity;
               }
             } else {
               document.getElementById('reward-name').value = '';
@@ -2015,6 +2021,7 @@
               document.getElementById('reward-category').value = 'diamond';
               document.getElementById('reward-cost').value = '';
               document.getElementById('reward-image').value = '';
+              document.getElementById('reward-quantity').value = '';
             }
             document.getElementById('reward-modal').classList.add('active');
           };
@@ -2031,6 +2038,7 @@
             const category = document.getElementById('reward-category').value;
             const cost = parseInt(document.getElementById('reward-cost').value);
             const image = document.getElementById('reward-image').value.trim();
+            const quantity = document.getElementById('reward-quantity').value.trim();
 
             if (!name || !cost) {
               Toast.show('Preencha nome e custo', 'error');
@@ -2038,13 +2046,22 @@
             }
 
             try {
-              const rewardData = { name, description: description || null, category, cost, image_url: image };
+              const rewardData = { 
+                name, 
+                description: description || null, 
+                category, 
+                cost, 
+                image_url: image,
+                quantity: quantity === '' ? null : parseInt(quantity),
+                sold_count: 0
+              };
+              
               if (editingRewardId) {
                 await DB.rewards.update(editingRewardId, rewardData);
-                Toast.show('Recompensa atualizada com sucesso!', 'success');
+                Toast.show('Recompensa atualizada!', 'success');
               } else {
                 await DB.rewards.create(rewardData);
-                Toast.show('Recompensa criada com sucesso!', 'success');
+                Toast.show('Recompensa criada!', 'success');
               }
               await loadRewards();
               closeRewardModal();
@@ -2073,7 +2090,11 @@
                   <td>${r.name}</td>
                   <td>${r.category}</td>
                   <td>${r.cost} pts</td>
-                  <td>${r.image_url ? '✅' : '❌'}</td>
+                  <td>${r.image_url ? 'Sim' : 'Não'}</td>
+                  <td>
+                    ${r.quantity === null ? 'Ilimitado' : 
+                      `${r.sold_count || 0}/${r.quantity} vendidos`}
+                  </td>
                   <td>
                     <div class="action-btns">
                       <button class="icon-btn" onclick="openRewardModal(${r.id})" title="Editar">
@@ -2100,7 +2121,7 @@
             showConfirm('Excluir recompensa', 'Tem certeza que deseja excluir esta recompensa?', async () => {
               try {
                 await DB.rewards.delete(id);
-                Toast.show('Recompensa excluída com sucesso!', 'success');
+                Toast.show('Recompensa excluída!', 'success');
                 await loadRewards();
               } catch (error) {
                 console.error('Erro ao excluir recompensa:', error);
@@ -2254,7 +2275,7 @@
             showConfirm('Banir usuário', 'Tem certeza que deseja banir este usuário?', async () => {
               try {
                 await DB.users.ban(userId);
-                Toast.show('Usuário banido com sucesso!', 'success');
+                Toast.show('Usuário banido!', 'success');
                 await loadUsers();
               } catch (error) {
                 console.error('Erro ao banir usuário:', error);
@@ -2267,7 +2288,7 @@
             showConfirm('Remover banimento', 'Remover banimento deste usuário?', async () => {
               try {
                 await DB.users.unban(userId);
-                Toast.show('Banimento removido com sucesso!', 'success');
+                Toast.show('Banimento removido!', 'success');
                 await loadUsers();
               } catch (error) {
                 console.error('Erro ao remover banimento:', error);
