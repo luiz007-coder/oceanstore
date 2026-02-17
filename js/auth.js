@@ -5,7 +5,7 @@ const Auth = {
     for (let i = 0; i < 3; i++) {
       randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    return `EFE-${randomPart}`;
+    return `E-${randomPart}`;
   },
 
   async fetchHabboUser(nick) {
