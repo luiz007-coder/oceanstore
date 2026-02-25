@@ -1865,6 +1865,8 @@
             }
           };
 
+          let isProcessing = false;
+
           window.showConfirm = function(title, message, onConfirm) {
             document.getElementById('confirm-title').textContent = title;
             document.getElementById('confirm-message').textContent = message;
@@ -1875,13 +1877,24 @@
             confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
             
             newBtn.onclick = async function() {
-              await onConfirm();
-              document.getElementById('confirm-modal').classList.remove('active');
+              if (isProcessing) return;
+              isProcessing = true;
+              
+              newBtn.disabled = true;
+              newBtn.textContent = 'Processando...';
+              
+              try {
+                await onConfirm();
+              } finally {
+                document.getElementById('confirm-modal').classList.remove('active');
+                isProcessing = false;
+              }
             };
           };
 
           window.closeConfirmModal = function() {
             document.getElementById('confirm-modal').classList.remove('active');
+            isProcessing = false;
           };
 
           window.deleteMission = async function(id) {
@@ -1958,14 +1971,29 @@
           };
 
           window.approveMission = async function(id) {
+            if (isProcessing) return;
+            
             showConfirm('Aprovar missão', 'Tem certeza que deseja APROVAR esta missão?', async () => {
               try {
                 const admin = SessionManager.getUser();
+
+                const pendingMissions = await DB.missions.getPendingWithDetails();
+                const missionExists = pendingMissions.some(m => m.id === id);
+                
+                if (!missionExists) {
+                  Toast.show('Esta missão já foi processada!', 'warning');
+                  return;
+                }
+                
                 await DB.missions.approve(id, admin.id);
                 Toast.show('Missão aprovada!', 'success');
-                await loadPendingMissions();
-                await loadUsers();
-                await loadStats();
+
+                await Promise.all([
+                  loadPendingMissions(),
+                  loadUsers(),
+                  loadStats()
+                ]);
+                
               } catch (error) {
                 console.error('Erro ao aprovar missão:', error);
                 Toast.show('Erro ao aprovar missão', 'error');
