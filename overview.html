@@ -1529,7 +1529,7 @@
               
               if (status.is_open) {
                 const remainingDays = await DB.store.getRemainingDays();
-                storeStatusEl.textContent = `🟢 Loja aberta (fecha em ${remainingDays} dias)`;
+                storeStatusEl.textContent = `Loja aberta (fecha em ${remainingDays} dias)`;
                 storeStatusEl.style.color = '#10b981';
                 queueMessage.style.display = 'none';
                 countdownLabel.textContent = 'Status';
@@ -1540,7 +1540,7 @@
                   countdownInterval = null;
                 }
               } else {
-                storeStatusEl.textContent = '🔴 Loja fechada';
+                storeStatusEl.textContent = 'Loja fechada';
                 storeStatusEl.style.color = '#ef4444';
                 
                 const pendingCount = await DB.redemptions.getPendingCount();
