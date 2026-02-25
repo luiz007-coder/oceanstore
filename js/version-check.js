@@ -65,9 +65,6 @@ const VersionChecker = {
   async checkForUpdates() {
     try {
       const masterHash = await this.generateMasterHash();
-      
-      console.log('Versão atual:', this.currentVersion ? this.currentVersion.substring(0, 8) + '...' : 'none');
-      console.log('Nova versão:', masterHash.substring(0, 8) + '...');
 
       if (!this.currentVersion) {
         this.currentVersion = masterHash;
@@ -77,26 +74,12 @@ const VersionChecker = {
       const hasChanged = this.currentVersion !== masterHash;
       
       if (hasChanged) {
-        console.log('MUDANÇA DETECTADA!');
-        console.log('Arquivos modificados:');
-        
-        for (const file of this.filesToCheck) {
-          const oldHash = await this.generateFileHash(file);
-          await new Promise(r => setTimeout(r, 10));
-          const newHash = await this.generateFileHash(file);
-          
-          if (oldHash && newHash && oldHash !== newHash) {
-            console.log(`   ${file} foi modificado`);
-          }
-        }
-        
         this.currentVersion = masterHash;
         return true;
       }
       
       return false;
     } catch (error) {
-      console.error('Erro na verificação:', error);
       return false;
     }
   },
@@ -107,68 +90,52 @@ const VersionChecker = {
     this.toastShown = true;
     
     const toast = document.createElement('div');
-    toast.className = 'toast toast-warning update-toast';
+    toast.className = 'toast update-toast';
     toast.id = 'update-toast';
     toast.innerHTML = `
-      <div style="flex: 1;">
-        <strong style="display: block; font-size: 15px; color: #b45309;">Nova versão disponível!</strong>
-        <span style="font-size: 12px; color: #92400e; display: block; margin-top: 2px;">
-          A OceanStore foi atualizada
-        </span>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <strong style="font-size: 14px; color: #1e293b;">Nova atualização disponível!</strong>
+        <span style="font-size: 12px; color: #475569;">Recarregue a página.</span>
       </div>
-      <button onclick="VersionChecker.refreshPage()" class="toast-btn" style="background: #d97706; color: white; border: none; padding: 8px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s ease; white-space: nowrap; box-shadow: 0 2px 8px rgba(217,119,6,0.3);">
-        ATUALIZAR
-      </button>
     `;
     
     const style = document.createElement('style');
     style.textContent = `
       .update-toast {
-        background: linear-gradient(135deg, #fffbeb, #fef3c7) !important;
-        border: 2px solid #fbbf24 !important;
-        padding: 9px 15px !important;
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        min-width: 280px;
+        background: white;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 16px 20px;
+        z-index: 999999;
         cursor: pointer;
-        transition: all 0.3s ease !important;
-        max-width: 420px !important;
-        animation: slideInRight 0.3s ease !important;
-        z-index: 999999 !important;
+        transition: all 0.2s ease;
       }
-      .toast-btn:hover {
-        background: #b45309 !important;
-        transform: scale(1.05);
-      }
-      .toast-btn:active {
-        transform: scale(0.95);
-      }
-      @keyframes slideInRight {
-        from {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
+      .update-toast:hover {
+        background: #f8fafc;
       }
     `;
     document.head.appendChild(style);
 
-    toast.addEventListener('click', (e) => {
-      if (e.target.tagName === 'BUTTON') return;
-      this.refreshPage();
+    toast.addEventListener('click', () => {
+      window.location.reload(true);
     });
     
     document.body.appendChild(toast);
     
     setTimeout(() => {
       if (document.getElementById('update-toast')) {
-        toast.classList.add('toast-hide');
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(20px)';
         setTimeout(() => {
           if (toast.parentNode) toast.remove();
           this.toastShown = false;
-        }, 300);
+        }, 200);
       }
-    }, 15000);
+    }, 5000);
   },
 
   refreshPage() {
@@ -176,9 +143,6 @@ const VersionChecker = {
   },
 
   startChecking(interval = 8000) {
-    console.log('Conferindo...');
-    console.log('Monitorando...', this.filesToCheck.length, 'arquivos');
-    
     setTimeout(async () => {
       if (await this.checkForUpdates()) {
         this.showUpdateToast();
@@ -188,12 +152,9 @@ const VersionChecker = {
     this.checkInterval = setInterval(async () => {
       try {
         if (await this.checkForUpdates()) {
-          console.log('🎯 Atualização global detectada!');
           this.showUpdateToast();
         }
-      } catch (error) {
-        console.error('Erro:', error);
-      }
+      } catch (error) {}
     }, interval);
   },
 
