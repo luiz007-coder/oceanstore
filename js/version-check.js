@@ -66,8 +66,8 @@ const VersionChecker = {
     try {
       const masterHash = await this.generateMasterHash();
       
-      console.log('🔍 Versão atual:', this.currentVersion ? this.currentVersion.substring(0, 8) + '...' : 'none');
-      console.log('📦 Nova versão:', masterHash.substring(0, 8) + '...');
+      console.log('Versão atual:', this.currentVersion ? this.currentVersion.substring(0, 8) + '...' : 'none');
+      console.log('Nova versão:', masterHash.substring(0, 8) + '...');
 
       if (!this.currentVersion) {
         this.currentVersion = masterHash;
@@ -86,7 +86,7 @@ const VersionChecker = {
           const newHash = await this.generateFileHash(file);
           
           if (oldHash && newHash && oldHash !== newHash) {
-            console.log(`  📄 ${file} foi modificado`);
+            console.log(`   ${file} foi modificado`);
           }
         }
         
@@ -110,9 +110,6 @@ const VersionChecker = {
     toast.className = 'toast toast-warning update-toast';
     toast.id = 'update-toast';
     toast.innerHTML = `
-      <svg viewBox="0 0 256 256" fill="currentColor" width="28" height="28">
-        <path d="M240,128a104,104,0,0,1-208,0c0-51,36.9-93.4,86.1-101.6a8,8,0,0,1,3.8,15.6,88,88,0,1,0,73.8,0,8,8,0,1,1,3.8-15.6C203.1,34.6,240,77,240,128ZM128,32a8,8,0,0,0-8,8v80a8,8,0,0,0,16,0V40A8,8,0,0,0,128,32Z"></path>
-      </svg>
       <div style="flex: 1;">
         <strong style="display: block; font-size: 15px; color: #b45309;">Nova versão disponível!</strong>
         <span style="font-size: 12px; color: #92400e; display: block; margin-top: 2px;">
@@ -129,18 +126,12 @@ const VersionChecker = {
       .update-toast {
         background: linear-gradient(135deg, #fffbeb, #fef3c7) !important;
         border: 2px solid #fbbf24 !important;
-        border-left: 6px solid #d97706 !important;
-        padding: 16px 22px !important;
+        padding: 9px 15px !important;
         cursor: pointer;
         transition: all 0.3s ease !important;
         max-width: 420px !important;
-        box-shadow: 0 20px 30px -10px rgba(217, 119, 6, 0.3) !important;
         animation: slideInRight 0.3s ease !important;
         z-index: 999999 !important;
-      }
-      .update-toast svg {
-        color: #d97706 !important;
-        animation: spin 2s linear infinite !important;
       }
       .toast-btn:hover {
         background: #b45309 !important;
@@ -158,10 +149,6 @@ const VersionChecker = {
           transform: translateX(0);
           opacity: 1;
         }
-      }
-      @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
       }
     `;
     document.head.appendChild(style);
